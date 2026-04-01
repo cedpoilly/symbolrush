@@ -1,0 +1,306 @@
+:root {
+  --bg: #06060e;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface2: rgba(255, 255, 255, 0.07);
+  --cyan: #00e8ff;
+  --cyan-dim: rgba(0, 232, 255, 0.12);
+  --cyan-glow: rgba(0, 232, 255, 0.35);
+  --magenta: #ff2d78;
+  --green: #00ff88;
+  --green-dim: rgba(0, 255, 136, 0.15);
+  --red: #ff3355;
+  --red-dim: rgba(255, 51, 85, 0.15);
+  --gold: #ffc233;
+  --gold-dim: rgba(255, 194, 51, 0.15);
+  --text: #e8e8f2;
+  --muted: rgba(255, 255, 255, 0.4);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.no-scroll {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* ── Grid background ── */
+.grid-bg {
+  position: relative;
+}
+
+.grid-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-bg-phone::before {
+  background-size: 36px 36px;
+}
+
+/* ── Radial glow (projector) ── */
+.radial-glow::after {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: 20%;
+  right: 20%;
+  height: 60%;
+  background: radial-ellipse(closest-side, var(--cyan-dim), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Timer bar ── */
+.timer-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--surface);
+  z-index: 100;
+}
+
+.timer-bar {
+  height: 100%;
+  background: var(--cyan);
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.timer-bar.urgent {
+  background: var(--magenta);
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.4);
+}
+
+/* ── Bottom bar ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+}
+
+.brand {
+  font-family: 'Azeret Mono', monospace;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.brand-symbol {
+  color: var(--cyan);
+}
+
+.brand-rush {
+  color: var(--muted);
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  transition: background 0.3s;
+}
+
+.connection-dot.connected {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
+}
+
+/* ── Utility classes ── */
+.mono {
+  font-family: 'Azeret Mono', monospace;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.cyan {
+  color: var(--cyan);
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.center-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Keyframes ── */
+@keyframes symbol-enter {
+  from {
+    transform: scale(0.7) rotate(-8deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-60px);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scan {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: calc(100% - 2px);
+  }
+}
+
+@keyframes flash-green-kf {
+  0% { color: var(--green); }
+  100% { color: var(--cyan); }
+}
+
+@keyframes flash-red-kf {
+  0% { color: var(--red); }
+  100% { color: var(--cyan); }
+}
+
+/* ── Vue transitions ── */
+.symbol-enter-active {
+  animation: symbol-enter 0.2s ease;
+}
+
+.symbol-leave-active {
+  animation: symbol-enter 0.15s ease reverse;
+}
+
+.join-pill-enter-active {
+  animation: slide-down 0.3s ease;
+}
+
+.join-pill-leave-active {
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+
+/* ── Floating score feedback (created via JS) ── */
+.float-score {
+  position: fixed;
+  font-family: 'Azeret Mono', monospace;
+  font-weight: 900;
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 200;
+  animation: float-up 0.7s ease forwards;
+}
+
+.float-correct {
+  color: var(--green);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+}
+
+.float-wrong {
+  color: var(--red);
+  text-shadow: 0 0 8px rgba(255, 51, 85, 0.5);
+}
+
+/* ── Ripple (created via JS) ── */
+.ripple {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 150;
+  animation: ripple-expand 0.4s ease forwards;
+}
+
+.ripple-correct {
+  background: var(--green-dim);
+}
+
+.ripple-wrong {
+  background: var(--red-dim);
+}
+
+/* ── Score flash ── */
+.flash-green {
+  animation: flash-green-kf 0.2s ease;
+}
+
+.flash-red {
+  animation: flash-red-kf 0.2s ease;
+}
