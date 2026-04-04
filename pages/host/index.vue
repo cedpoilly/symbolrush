@@ -13,7 +13,6 @@ const sessionScores = ref<SessionScore[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const roundCount = ref(0)
 
-// ── Connect + create room on mount ──
 onMounted(() => {
   connect()
   const unwatch = watch(connected, (isConnected) => {
@@ -24,7 +23,6 @@ onMounted(() => {
   }, { immediate: true })
 })
 
-// ── Message handlers ──
 on('room:created', (msg) => {
   if (msg.type !== 'room:created') return
   roomCode.value = msg.roomCode
@@ -70,7 +68,6 @@ on('leaderboard:update', (msg) => {
   leaderboard.value = msg.leaderboard
 })
 
-// ── Actions ──
 function startRound() {
   send({ type: 'host:start-session' })
 }
@@ -84,23 +81,19 @@ function openPublicScreen() {
   window.open(`/ps/${roomCode.value}`, '_blank')
 }
 
-const copied = ref(false)
+const toast = useToast()
 async function copyPublicScreenUrl() {
   try {
     await navigator.clipboard.writeText(psFullUrl.value)
-    copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
   } catch {
-    // Fallback: select from a temporary input
     const input = document.createElement('input')
     input.value = psFullUrl.value
     document.body.appendChild(input)
     input.select()
     document.execCommand('copy')
     input.remove()
-    copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
   }
+  toast.add({ title: 'URL copied!', color: 'success' })
 }
 
 const canShare = ref(false)
@@ -115,427 +108,129 @@ async function sharePublicScreenUrl() {
       text: `Join Symbol Rush! Room: ${roomCode.value}`,
       url: psFullUrl.value,
     })
-  } catch {
-    // User cancelled or share failed — silently ignore
-  }
+  } catch { /* User cancelled */ }
 }
 
-// ── Computed ──
 const secondsRemaining = computed(() => Math.ceil(timeRemainingMs.value / 1000))
 const timerPercent = computed(() =>
   Math.max(0, (timeRemainingMs.value / sessionDuration.value) * 100),
 )
 const timerUrgent = computed(() => timeRemainingMs.value < 8000)
 
+const playerScores = computed(() => {
+  const map: Record<string, number> = {}
+  for (const entry of leaderboard.value) {
+    map[entry.playerId] = entry.bestScore
+  }
+  return map
+})
+
 useHead({ title: 'Symbol Rush — Host Panel' })
 </script>
 
 <template>
-  <div class="host-panel grid-bg">
-    <div class="panel">
+  <div class="grid-bg min-h-dvh flex justify-center p-8">
+    <div class="w-full max-w-[480px] flex flex-col relative z-1">
       <!-- Header -->
-      <div class="panel-header">
-        <h1 class="panel-title">SYMBOL<span class="rush">RUSH</span></h1>
-        <span class="connection-dot" :class="{ connected }" />
+      <div class="flex items-center justify-between pb-6 mb-6 border-b border-neutral-800">
+        <h1 class="font-mono font-black text-xl text-primary tracking-wide">
+          SYMBOL<span class="text-neutral-400">RUSH</span>
+        </h1>
+        <span
+          class="w-2 h-2 rounded-full transition-colors"
+          :class="connected ? 'bg-success shadow-[0_0_6px_rgba(0,255,136,0.4)]' : 'bg-error'"
+        />
       </div>
 
       <!-- Connecting -->
-      <div v-if="phase === 'connecting'" class="section">
-        <p class="mono muted">Creating room...</p>
+      <div v-if="phase === 'connecting'" class="py-4">
+        <p class="font-mono text-neutral-400">Creating room...</p>
       </div>
 
       <template v-else>
         <!-- Room info -->
-        <div class="section room-info">
-          <div class="room-code-row">
-            <span class="label">Room</span>
-            <span class="room-code mono">{{ roomCode }}</span>
+        <div class="py-4 border-b border-neutral-900">
+          <div class="flex items-baseline gap-3 mb-2">
+            <span class="text-sm text-neutral-400">Room</span>
+            <RoomCodeDisplay :code="roomCode" size="sm" />
           </div>
-          <div class="room-meta">
-            <span class="status-pill mono" :class="phase">{{ phase }}</span>
-            <span v-if="roundCount > 0" class="mono muted">Round {{ roundCount }}</span>
-          </div>
+          <GameStatusBanner :status="phase" :round-count="roundCount" />
         </div>
 
         <!-- Public Screen actions -->
-        <div class="section">
-          <h2 class="section-title">Public Screen</h2>
-          <div class="ps-actions">
-            <button class="ps-btn" @click="openPublicScreen">
-              <span class="ps-btn-icon">⤴</span>
-              <span>Open</span>
-            </button>
-            <button class="ps-btn" @click="copyPublicScreenUrl">
-              <span class="ps-btn-icon">{{ copied ? '✅' : '📋' }}</span>
-              <span>{{ copied ? 'Copied!' : 'Copy URL' }}</span>
-            </button>
-            <button v-if="canShare" class="ps-btn" @click="sharePublicScreenUrl">
-              <span class="ps-btn-icon">📤</span>
-              <span>Share</span>
-            </button>
+        <div class="py-4 border-b border-neutral-900">
+          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Public Screen</h2>
+          <div class="flex gap-2">
+            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
+              Open
+            </UButton>
+            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyPublicScreenUrl">
+              Copy URL
+            </UButton>
+            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="sharePublicScreenUrl">
+              Share
+            </UButton>
           </div>
-          <p class="ps-url mono muted">{{ psFullUrl }}</p>
+          <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
         </div>
 
         <!-- Players -->
-        <div class="section">
-          <h2 class="section-title">
-            Players <span class="count-badge mono">{{ players.length }}</span>
+        <div class="py-4 border-b border-neutral-900">
+          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+            Players
+            <UBadge variant="subtle" color="neutral" size="xs">{{ players.length }}</UBadge>
           </h2>
-          <div v-if="players.length === 0" class="empty-state muted">
-            No players yet — share the room code
-          </div>
-          <div v-else class="player-list">
-            <div
-              v-for="player in players"
-              :key="player.id"
-              class="player-row"
-            >
-              <span class="player-name">{{ player.username }}</span>
-              <span class="player-score mono cyan">
-                {{ leaderboard.find(e => e.playerId === player.id)?.bestScore ?? 0 }}
-              </span>
-            </div>
-          </div>
+          <PlayerList :players="players" :scores="playerScores" />
         </div>
 
         <!-- Playing state -->
-        <div v-if="phase === 'playing'" class="section playing-section">
-          <div class="mini-timer-bar">
-            <div class="mini-timer-fill" :class="{ urgent: timerUrgent }" :style="{ width: timerPercent + '%' }" />
+        <div v-if="phase === 'playing'" class="py-4 border-b border-neutral-900">
+          <div class="h-[3px] bg-neutral-800 rounded-full mb-3 overflow-hidden">
+            <div
+              class="h-full transition-[width] duration-100"
+              :class="timerUrgent ? 'bg-secondary' : 'bg-primary'"
+              :style="{ width: timerPercent + '%' }"
+            />
           </div>
-          <div class="playing-info">
-            <span class="mono muted">Current symbol:</span>
-            <span class="current-symbol">{{ currentSymbol }}</span>
-            <span class="mono muted">{{ secondsRemaining }}s left</span>
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-sm text-neutral-400">Current symbol:</span>
+            <span class="text-2xl">{{ currentSymbol }}</span>
+            <span class="font-mono text-sm text-neutral-400">{{ secondsRemaining }}s left</span>
           </div>
         </div>
 
         <!-- Round results -->
-        <div v-if="phase === 'results' && sessionScores.length > 0" class="section">
-          <h2 class="section-title">Last Round</h2>
-          <div class="round-scores">
-            <div v-for="(s, i) in sessionScores.slice(0, 5)" :key="s.playerId" class="score-row">
-              <span class="score-rank mono muted">#{{ i + 1 }}</span>
-              <span class="score-name">{{ s.username }}</span>
-              <span class="score-val mono cyan">{{ s.score }}</span>
+        <div v-if="phase === 'results' && sessionScores.length > 0" class="py-4 border-b border-neutral-900">
+          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Last Round</h2>
+          <div class="flex flex-col gap-1">
+            <div
+              v-for="(s, i) in sessionScores.slice(0, 5)"
+              :key="s.playerId"
+              class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 rounded-lg text-sm"
+            >
+              <span class="font-mono text-xs text-neutral-400 min-w-[28px]">#{{ i + 1 }}</span>
+              <span class="flex-1">{{ s.username }}</span>
+              <span class="font-mono font-bold text-primary">{{ s.score }}</span>
             </div>
           </div>
         </div>
 
         <!-- Controls -->
-        <div class="section controls">
-          <button
+        <div class="pt-5">
+          <UButton
             v-if="phase === 'lobby' || phase === 'results'"
-            class="btn-start"
+            block
+            size="lg"
             :disabled="players.length === 0"
             @click="startRound"
           >
             {{ phase === 'results' ? 'Next Round' : 'Start Round' }}
-          </button>
-          <p v-if="phase === 'playing'" class="mono muted">Round in progress...</p>
+          </UButton>
+          <p v-if="phase === 'playing'" class="font-mono text-neutral-400 text-sm">
+            Round in progress...
+          </p>
         </div>
       </template>
     </div>
   </div>
 </template>
-
-<style scoped>
-.host-panel {
-  min-height: 100dvh;
-  display: flex;
-  justify-content: center;
-  padding: 32px 24px;
-}
-
-.panel {
-  width: 100%;
-  max-width: 480px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  position: relative;
-  z-index: 1;
-}
-
-/* ── Header ── */
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 24px;
-}
-
-.panel-title {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 900;
-  font-size: 1.2rem;
-  color: var(--cyan);
-  letter-spacing: 0.04em;
-}
-
-.rush {
-  color: var(--muted);
-}
-
-/* ── Sections ── */
-.section {
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.section:last-child {
-  border-bottom: none;
-}
-
-.section-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.count-badge {
-  font-size: 0.75rem;
-  background: var(--surface2);
-  padding: 2px 8px;
-  border-radius: 10px;
-  color: var(--text);
-}
-
-/* ── Room info ── */
-.room-code-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.label {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.room-code {
-  font-weight: 900;
-  font-size: 2rem;
-  color: var(--cyan);
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 20px var(--cyan-glow);
-}
-
-.room-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.status-pill {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 3px 10px;
-  border-radius: 8px;
-}
-
-.status-pill.lobby {
-  color: var(--cyan);
-  background: var(--cyan-dim);
-}
-
-.status-pill.playing {
-  color: var(--green);
-  background: var(--green-dim);
-}
-
-.status-pill.results {
-  color: var(--gold);
-  background: var(--gold-dim);
-}
-
-/* ── Public Screen actions ── */
-.ps-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.ps-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 8px;
-  background: var(--surface2);
-  border: 1.5px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  color: var(--text);
-  cursor: pointer;
-  font-family: 'Azeret Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
-}
-
-.ps-btn:hover {
-  border-color: var(--cyan);
-  background: var(--cyan-dim);
-  color: var(--cyan);
-}
-
-.ps-btn:active {
-  transform: scale(0.95);
-}
-
-.ps-btn-icon {
-  font-size: 1.2rem;
-}
-
-.ps-url {
-  font-size: 0.7rem;
-  margin-top: 8px;
-  word-break: break-all;
-}
-
-/* ── Players ── */
-.empty-state {
-  font-size: 0.85rem;
-  padding: 12px 0;
-}
-
-.player-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.player-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--surface);
-  border-radius: 8px;
-}
-
-.player-name {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.player-score {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-/* ── Playing info ── */
-.playing-section {
-  padding-top: 12px;
-}
-
-.mini-timer-bar {
-  height: 3px;
-  background: var(--surface);
-  border-radius: 2px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-
-.mini-timer-fill {
-  height: 100%;
-  background: var(--cyan);
-  transition: width 0.1s linear;
-}
-
-.mini-timer-fill.urgent {
-  background: var(--magenta);
-}
-
-.playing-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.current-symbol {
-  font-size: 1.5rem;
-}
-
-/* ── Round scores ── */
-.round-scores {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.score-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--surface);
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-
-.score-rank {
-  min-width: 28px;
-  font-size: 0.75rem;
-}
-
-.score-name {
-  flex: 1;
-  font-family: 'Outfit', sans-serif;
-}
-
-.score-val {
-  font-weight: 700;
-}
-
-/* ── Controls ── */
-.controls {
-  padding-top: 20px;
-}
-
-.btn-start {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 700;
-  font-size: 1rem;
-  width: 100%;
-  padding: 14px;
-  background: var(--cyan);
-  color: var(--bg);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
-}
-
-.btn-start:hover {
-  box-shadow: 0 0 24px var(--cyan-glow);
-}
-
-.btn-start:active {
-  transform: scale(0.97);
-}
-
-.btn-start:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-</style>
