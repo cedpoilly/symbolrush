@@ -6,7 +6,7 @@ import {
 import type { ClientMessage, ServerMessage } from '~/types/game'
 
 interface PeerMeta {
-  type: 'host' | 'player'
+  type: 'host' | 'player' | 'screen'
   roomCode: string
   playerId?: string
 }
@@ -40,13 +40,13 @@ function broadcast(roomCode: string, message: ServerMessage, excludePeerId?: str
   }
 }
 
-function sendToHosts(roomCode: string, message: ServerMessage) {
+function sendToDisplays(roomCode: string, message: ServerMessage) {
   const peers = roomPeers.get(roomCode)
   if (!peers) return
   const data = JSON.stringify(message)
   for (const peerId of peers) {
     const meta = peerMeta.get(peerId)
-    if (meta?.type === 'host') {
+    if (meta?.type === 'host' || meta?.type === 'screen') {
       const peer = peerMap.get(peerId)
       if (peer) peer.send(data)
     }
@@ -77,8 +77,8 @@ function startGameLoop(roomCode: string) {
   const symbolInterval = setInterval(() => {
     const result = rotateSymbol(roomCode)
     if (result) {
-      // Only host sees the symbol — anti-cheat
-      sendToHosts(roomCode, {
+      // Only host + public screens see the symbol — anti-cheat
+      sendToDisplays(roomCode, {
         type: 'session:symbol-change',
         symbol: result.symbol,
         symbolChoices: result.choices,
@@ -215,8 +215,8 @@ export default defineWebSocketHandler({
           endsAt: session.endsAt,
           symbolChoices: session.symbolChoices,
         })
-        // Send initial symbol only to host
-        sendToHosts(meta.roomCode, {
+        // Send initial symbol only to displays (host + public screens)
+        sendToDisplays(meta.roomCode, {
           type: 'session:symbol-change',
           symbol: session.currentSymbol,
           symbolChoices: session.symbolChoices,
@@ -230,6 +230,55 @@ export default defineWebSocketHandler({
         if (!meta || meta.type !== 'host') return
         stopGameLoop(meta.roomCode)
         broadcast(meta.roomCode, { type: 'room:status', status: 'finished', playerCount: 0 })
+        break
+      }
+
+      case 'screen:join': {
+        const roomCode = data.roomCode.toUpperCase()
+        const room = getRoom(roomCode)
+        if (!room) {
+          sendTo(peer.id, { type: 'error', message: 'Room not found' })
+          return
+        }
+        peerMeta.set(peer.id, { type: 'screen', roomCode })
+        addPeerToRoom(peer.id, roomCode)
+
+        // Send current room status
+        sendTo(peer.id, {
+          type: 'room:status',
+          status: room.status,
+          playerCount: room.players.size,
+        })
+
+        // Send existing players
+        for (const player of room.players.values()) {
+          if (player.connected) {
+            sendTo(peer.id, {
+              type: 'room:player-joined',
+              player: { id: player.id, username: player.username },
+            })
+          }
+        }
+
+        // If game in progress, send current state
+        if (room.status === 'playing' && room.currentSession) {
+          sendTo(peer.id, {
+            type: 'session:started',
+            endsAt: room.currentSession.endsAt,
+            symbolChoices: room.currentSession.symbolChoices,
+          })
+          sendTo(peer.id, {
+            type: 'session:symbol-change',
+            symbol: room.currentSession.currentSymbol,
+            symbolChoices: room.currentSession.symbolChoices,
+          })
+        }
+
+        // If we have leaderboard data, send it
+        const lb = getLeaderboard(roomCode)
+        if (lb.length > 0) {
+          sendTo(peer.id, { type: 'leaderboard:update', leaderboard: lb })
+        }
         break
       }
 

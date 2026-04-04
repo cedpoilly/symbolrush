@@ -66,6 +66,7 @@ export type ClientMessage =
   | { type: 'host:create-room'; config?: Partial<RoomConfig> }
   | { type: 'host:start-session' }
   | { type: 'host:end-room' }
+  | { type: 'screen:join'; roomCode: string }
   | { type: 'player:join'; roomCode: string; username: string }
   | { type: 'player:tap'; symbol: Symbol }
 
