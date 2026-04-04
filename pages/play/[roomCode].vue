@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { SYMBOLS } from '~/types/game'
 import type { Symbol, LeaderboardEntry } from '~/types/game'
 
 const route = useRoute()
@@ -18,16 +17,16 @@ const sessionDuration = ref(30_000)
 const symbolChoices = ref<Symbol[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const leaderboardRank = ref(0)
-const scoreFlash = ref('')
+
+const scoreFloatRef = ref<InstanceType<typeof ScoreFloat> | null>(null)
+const scoreDisplayRef = ref<InstanceType<typeof ScoreDisplay> | null>(null)
 const lastTapPos = ref<{ x: number; y: number } | null>(null)
 
-// ── Redirect if no username ──
 onMounted(() => {
   if (!username.value) {
     navigateTo(`/?room=${roomCode.value}`)
     return
   }
-
   connect()
   const unwatch = watch(connected, (isConnected) => {
     if (isConnected) {
@@ -37,7 +36,6 @@ onMounted(() => {
   }, { immediate: true })
 })
 
-// ── Handlers ──
 on('room:status', (msg) => {
   if (msg.type !== 'room:status') return
   if (phase.value === 'connecting') phase.value = 'waiting'
@@ -67,7 +65,10 @@ on('session:tick', (msg) => {
 on('player:tap-result', (msg) => {
   if (msg.type !== 'player:tap-result') return
   score.value = msg.score
-  showFeedback(msg.correct, msg.delta)
+  scoreDisplayRef.value?.flash(msg.correct)
+  if (lastTapPos.value) {
+    scoreFloatRef.value?.show(lastTapPos.value.x, lastTapPos.value.y, msg.correct, msg.delta)
+  }
 })
 
 on('session:ended', (msg) => {
@@ -91,281 +92,89 @@ on('error', (msg) => {
   console.error('[SymbolRush]', msg.message)
 })
 
-// ── Computed ──
-const timerPercent = computed(() =>
-  Math.max(0, (timeRemainingMs.value / sessionDuration.value) * 100),
-)
-const timerUrgent = computed(() => timeRemainingMs.value < 8000)
 const secondsRemaining = computed(() => Math.ceil(timeRemainingMs.value / 1000))
 
-// ── Tap handling ──
 function handleTap(event: MouseEvent, symbol: Symbol) {
   lastTapPos.value = { x: event.clientX, y: event.clientY }
   send({ type: 'player:tap', symbol })
 }
 
-function showFeedback(correct: boolean, delta: number) {
-  // Score flash
-  scoreFlash.value = correct ? 'flash-green' : 'flash-red'
-  setTimeout(() => { scoreFlash.value = '' }, 200)
-
-  if (!lastTapPos.value) return
-  const { x, y } = lastTapPos.value
-
-  // Ripple
-  const ripple = document.createElement('div')
-  ripple.className = `ripple ${correct ? 'ripple-correct' : 'ripple-wrong'}`
-  ripple.style.left = `${x}px`
-  ripple.style.top = `${y}px`
-  document.body.appendChild(ripple)
-  setTimeout(() => ripple.remove(), 400)
-
-  // Floating score
-  const float = document.createElement('div')
-  float.className = `float-score ${correct ? 'float-correct' : 'float-wrong'}`
-  float.textContent = delta > 0 ? `+${delta}` : String(delta)
-  float.style.left = `${x}px`
-  float.style.top = `${y}px`
-  document.body.appendChild(float)
-  setTimeout(() => float.remove(), 700)
-}
-
 useHead({
-  title: `Symbol Rush — Playing`,
+  title: 'Symbol Rush — Playing',
   bodyAttrs: { class: 'no-scroll' },
 })
 </script>
 
 <template>
-  <div class="player grid-bg grid-bg-phone">
-    <!-- Timer bar -->
-    <div v-if="phase === 'playing'" class="timer-bar-container">
-      <div class="timer-bar" :class="{ urgent: timerUrgent }" :style="{ width: timerPercent + '%' }" />
-    </div>
+  <div class="grid-bg grid-bg-phone min-h-dvh relative overscroll-none select-none">
+    <TimerBar
+      v-if="phase === 'playing'"
+      :time-remaining-ms="timeRemainingMs"
+      :total-duration-ms="sessionDuration"
+    />
+    <ScoreFloat ref="scoreFloatRef" />
 
     <!-- Connecting -->
-    <div v-if="phase === 'connecting'" class="center-screen">
-      <p class="mono muted">Joining room...</p>
+    <div v-if="phase === 'connecting'" class="min-h-dvh flex items-center justify-center relative z-1">
+      <p class="font-mono text-neutral-400">Joining room...</p>
     </div>
 
     <!-- Waiting -->
-    <div v-else-if="phase === 'waiting'" class="phase-screen waiting">
-      <span class="eye">👀</span>
-      <h1 class="phase-heading cyan">You're in!</h1>
-      <p class="room-label">Room: <strong>{{ roomCode }}</strong></p>
-      <p class="muted wait-text">Watch the projector — game starts any moment</p>
-      <span class="username-pill mono">playing as {{ username }}</span>
+    <div v-else-if="phase === 'waiting'" class="min-h-dvh flex flex-col items-center justify-center p-6 relative z-1 gap-4">
+      <span class="text-5xl">👀</span>
+      <h1 class="font-mono font-black text-3xl text-primary">You're in!</h1>
+      <p>Room: <strong>{{ roomCode }}</strong></p>
+      <p class="text-neutral-400 text-sm text-center">Watch the projector — game starts any moment</p>
+      <UBadge variant="outline" color="neutral" size="sm">
+        <span class="font-mono">playing as {{ username }}</span>
+      </UBadge>
     </div>
 
     <!-- Playing -->
-    <div v-else-if="phase === 'playing'" class="phase-screen game-screen">
-      <div class="hud">
-        <span class="hud-timer mono muted">{{ secondsRemaining }}s</span>
-        <span class="hud-score mono" :class="scoreFlash">{{ score }}</span>
+    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center pt-6 px-6 relative z-1 gap-4">
+      <div class="w-full flex justify-between items-center px-1">
+        <span class="font-mono text-neutral-400">{{ secondsRemaining }}s</span>
+        <ScoreDisplay ref="scoreDisplayRef" :score="score" />
       </div>
-      <p class="instruction mono muted">TAP THE SYMBOL ON SCREEN!</p>
-      <div class="symbol-grid">
-        <button
-          v-for="s in symbolChoices"
-          :key="s"
-          class="symbol-btn"
-          @click="handleTap($event, s)"
-        >
-          {{ s }}
-        </button>
-      </div>
+      <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">
+        TAP THE SYMBOL ON SCREEN!
+      </p>
+      <SymbolGrid
+        :symbols="symbolChoices"
+        class="mt-auto mb-auto"
+        @tap="handleTap"
+      />
     </div>
 
     <!-- Results -->
-    <div v-else-if="phase === 'results'" class="phase-screen results-screen">
-      <p class="label-text mono muted">Round over</p>
-      <h1 class="phase-heading cyan">Nice run!</h1>
-      <div class="score-cards">
-        <div class="score-card">
-          <span class="score-card-label">Round Score</span>
-          <span class="score-card-value mono">{{ roundScore }}</span>
+    <div v-else-if="phase === 'results'" class="min-h-dvh flex flex-col items-center justify-center p-6 relative z-1 gap-4">
+      <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">Round over</p>
+      <h1 class="font-mono font-black text-3xl text-primary">Nice run!</h1>
+      <div class="flex gap-4 w-full max-w-[340px]">
+        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
+          <span class="text-xs text-neutral-400 block mb-1">Round Score</span>
+          <span class="font-mono font-black text-3xl text-primary">{{ roundScore }}</span>
         </div>
-        <div class="score-card">
-          <span class="score-card-label">Personal Best</span>
-          <span class="score-card-value mono gold">{{ personalBest }}</span>
+        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
+          <span class="text-xs text-neutral-400 block mb-1">Personal Best</span>
+          <span class="font-mono font-black text-3xl text-warning">{{ personalBest }}</span>
         </div>
       </div>
-      <span class="rank-pill mono cyan">#{{ leaderboardRank }} on leaderboard</span>
-      <p class="muted">Next round starting soon...</p>
+      <UBadge variant="outline" color="primary" size="md">
+        <span class="font-mono">#{{ leaderboardRank }} on leaderboard</span>
+      </UBadge>
+      <p class="text-neutral-400 text-sm">Next round starting soon...</p>
     </div>
 
     <!-- Bottom bar -->
-    <div class="bottom-bar">
-      <span class="brand mono">
-        <span class="brand-symbol">SYMBOL</span><span class="brand-rush">RUSH</span>
+    <div class="fixed bottom-0 left-0 right-0 px-6 py-4 flex items-center justify-between z-50">
+      <span class="font-mono font-bold text-xs tracking-wide">
+        <span class="text-primary">SYMBOL</span><span class="text-neutral-400">RUSH</span>
       </span>
-      <span class="connection-dot" :class="{ connected }" />
+      <span
+        class="w-2 h-2 rounded-full transition-colors"
+        :class="connected ? 'bg-success shadow-[0_0_6px_rgba(0,255,136,0.4)]' : 'bg-error'"
+      />
     </div>
   </div>
 </template>
-
-<style scoped>
-.player {
-  min-height: 100dvh;
-  position: relative;
-  overscroll-behavior: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.phase-screen {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  position: relative;
-  z-index: 1;
-}
-
-/* ── Waiting ── */
-.eye {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-
-.phase-heading {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 900;
-  font-size: 1.8rem;
-  margin-bottom: 12px;
-}
-
-.room-label {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
-.wait-text {
-  font-size: 0.9rem;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.username-pill {
-  font-size: 0.75rem;
-  color: var(--muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px 14px;
-  border-radius: 20px;
-}
-
-/* ── Playing ── */
-.game-screen {
-  justify-content: flex-start;
-  padding-top: 24px;
-  gap: 16px;
-}
-
-.hud {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 4px;
-}
-
-.hud-timer {
-  font-size: 1rem;
-}
-
-.hud-score {
-  font-weight: 900;
-  font-size: 1.5rem;
-  color: var(--cyan);
-  transition: color 0.1s;
-}
-
-.instruction {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.symbol-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 100%;
-  max-width: 340px;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.symbol-btn {
-  aspect-ratio: 1;
-  font-size: 40px;
-  background: var(--surface2);
-  border: 2px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.1s;
-}
-
-.symbol-btn:active {
-  transform: scale(0.93);
-}
-
-/* ── Results ── */
-.results-screen {
-  gap: 16px;
-}
-
-.label-text {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.score-cards {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  max-width: 340px;
-}
-
-.score-card {
-  flex: 1;
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.score-card-label {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.score-card-value {
-  font-weight: 900;
-  font-size: 2rem;
-  color: var(--cyan);
-}
-
-.rank-pill {
-  font-size: 0.85rem;
-  padding: 8px 18px;
-  border: 1px solid rgba(0, 232, 255, 0.25);
-  border-radius: 20px;
-  margin: 8px 0;
-}
-</style>
