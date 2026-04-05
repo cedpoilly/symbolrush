@@ -1,37 +1,97 @@
-:root {
-  --bg: #06060e;
-  --surface: rgba(255, 255, 255, 0.04);
-  --surface2: rgba(255, 255, 255, 0.07);
-  --cyan: #00e8ff;
-  --cyan-dim: rgba(0, 232, 255, 0.12);
-  --cyan-glow: rgba(0, 232, 255, 0.35);
-  --magenta: #ff2d78;
-  --green: #00ff88;
-  --green-dim: rgba(0, 255, 136, 0.15);
-  --red: #ff3355;
-  --red-dim: rgba(255, 51, 85, 0.15);
-  --gold: #ffc233;
-  --gold-dim: rgba(255, 194, 51, 0.15);
-  --text: #e8e8f2;
-  --muted: rgba(255, 255, 255, 0.4);
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* ══════════════════════════════════════════════
+   Symbol Rush — Design Tokens
+   ══════════════════════════════════════════════ */
+
+@theme {
+  /* ── Typography ── */
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'Azeret Mono', monospace;
+
+  /* ── Cyan (primary) ── base: #00e8ff ── */
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffbfe;
+  --color-cyan-200: #a5f5fc;
+  --color-cyan-300: #5eebf7;
+  --color-cyan-400: #00e8ff;
+  --color-cyan-500: #00c8db;
+  --color-cyan-600: #00a1b6;
+  --color-cyan-700: #008193;
+  --color-cyan-800: #006878;
+  --color-cyan-900: #005664;
+  --color-cyan-950: #003844;
+
+  /* ── Magenta (secondary) ── base: #ff2d78 ── */
+  --color-magenta-50: #fff0f3;
+  --color-magenta-100: #ffe2ea;
+  --color-magenta-200: #ffc9d9;
+  --color-magenta-300: #ff9bb8;
+  --color-magenta-400: #ff2d78;
+  --color-magenta-500: #ed1164;
+  --color-magenta-600: #cc004f;
+  --color-magenta-700: #a5003f;
+  --color-magenta-800: #880037;
+  --color-magenta-900: #730033;
+  --color-magenta-950: #430017;
+
+  /* ── Green (success) ── base: #00ff88 ── */
+  --color-green-50: #edfff5;
+  --color-green-100: #d5ffea;
+  --color-green-200: #adffd5;
+  --color-green-300: #70ffb5;
+  --color-green-400: #00ff88;
+  --color-green-500: #00dd72;
+  --color-green-600: #00b85d;
+  --color-green-700: #009049;
+  --color-green-800: #00713c;
+  --color-green-900: #005d33;
+  --color-green-950: #00341c;
+
+  /* ── Red (error) ── base: #ff3355 ── */
+  --color-red-50: #fff0f1;
+  --color-red-100: #ffe1e4;
+  --color-red-200: #ffc8cf;
+  --color-red-300: #ffa1ad;
+  --color-red-400: #ff3355;
+  --color-red-500: #ed113a;
+  --color-red-600: #cc002e;
+  --color-red-700: #a50025;
+  --color-red-800: #880022;
+  --color-red-900: #730021;
+  --color-red-950: #430010;
+
+  /* ── Gold (warning) ── base: #ffc233 ── */
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fff3c6;
+  --color-gold-200: #ffe88a;
+  --color-gold-300: #ffd84d;
+  --color-gold-400: #ffc233;
+  --color-gold-500: #f0a30e;
+  --color-gold-600: #d47d09;
+  --color-gold-700: #a95a08;
+  --color-gold-800: #8a460d;
+  --color-gold-900: #723a10;
+  --color-gold-950: #431d05;
+
+  /* ── Rush (neutral) ── base: #06060e ── */
+  --color-rush-50: #f6f6f8;
+  --color-rush-100: #e8e8f2;
+  --color-rush-200: #d4d4de;
+  --color-rush-300: #ababbd;
+  --color-rush-400: #7c7c96;
+  --color-rush-500: #60607a;
+  --color-rush-600: #4a4a65;
+  --color-rush-700: #35354e;
+  --color-rush-800: #222238;
+  --color-rush-900: #141424;
+  --color-rush-950: #06060e;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html,
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Outfit', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* ══════════════════════════════════════════════
+   Game-specific global styles
+   ══════════════════════════════════════════════ */
 
 body.no-scroll {
   overflow: hidden;
@@ -55,187 +115,74 @@ body.no-scroll {
   z-index: 0;
 }
 
+.dark .grid-bg::before {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.light .grid-bg::before {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
 .grid-bg-phone::before {
   background-size: 36px 36px;
 }
 
-/* ── Radial glow (projector) ── */
-.radial-glow::after {
+/* ── Radial glow (projector, dark mode only) ── */
+.dark .radial-glow::after {
   content: '';
   position: fixed;
   top: -20%;
   left: 20%;
   right: 20%;
   height: 60%;
-  background: radial-ellipse(closest-side, var(--cyan-dim), transparent);
+  background: radial-gradient(closest-side, rgba(0, 232, 255, 0.12), transparent);
   pointer-events: none;
   z-index: 0;
 }
 
-/* ── Timer bar ── */
-.timer-bar-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: var(--surface);
-  z-index: 100;
-}
-
-.timer-bar {
-  height: 100%;
-  background: var(--cyan);
-  transition: width 0.1s linear;
-  box-shadow: 0 0 10px var(--cyan-glow);
-}
-
-.timer-bar.urgent {
-  background: var(--magenta);
-  box-shadow: 0 0 12px rgba(255, 45, 120, 0.4);
-}
-
-/* ── Bottom bar ── */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 50;
-}
-
-.brand {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-}
-
-.brand-symbol {
-  color: var(--cyan);
-}
-
-.brand-rush {
-  color: var(--muted);
-}
-
-.connection-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--red);
-  transition: background 0.3s;
-}
-
-.connection-dot.connected {
-  background: var(--green);
-  box-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
-}
-
-/* ── Utility classes ── */
-.mono {
-  font-family: 'Azeret Mono', monospace;
-}
-
-.muted {
-  color: var(--muted);
-}
-
-.cyan {
-  color: var(--cyan);
-}
-
-.gold {
-  color: var(--gold);
-}
-
-.center-screen {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  position: relative;
-  z-index: 1;
-}
-
 /* ── Keyframes ── */
 @keyframes symbol-enter {
-  from {
-    transform: scale(0.7) rotate(-8deg);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  from { transform: scale(0.7) rotate(-8deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 @keyframes float-up {
-  0% {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) translateY(-60px);
-    opacity: 0;
-  }
+  0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-60px); opacity: 0; }
 }
 
 @keyframes ripple-expand {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(4);
-    opacity: 0;
-  }
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
 }
 
 @keyframes slide-down {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes slide-in-left {
-  from {
-    transform: translateX(-30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes scan {
-  0% {
-    top: 0;
-  }
-  100% {
-    top: calc(100% - 2px);
-  }
+  0% { top: 0; }
+  100% { top: calc(100% - 2px); }
 }
 
 @keyframes flash-green-kf {
-  0% { color: var(--green); }
-  100% { color: var(--cyan); }
+  0% { color: var(--color-green-400); }
+  100% { color: var(--color-cyan-400); }
 }
 
 @keyframes flash-red-kf {
-  0% { color: var(--red); }
-  100% { color: var(--cyan); }
+  0% { color: var(--color-red-400); }
+  100% { color: var(--color-cyan-400); }
 }
 
 /* ── Vue transitions ── */
@@ -254,53 +201,4 @@ body.no-scroll {
 .join-pill-leave-active {
   transition: opacity 0.2s;
   opacity: 0;
-}
-
-/* ── Floating score feedback (created via JS) ── */
-.float-score {
-  position: fixed;
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 900;
-  font-size: 1.5rem;
-  pointer-events: none;
-  z-index: 200;
-  animation: float-up 0.7s ease forwards;
-}
-
-.float-correct {
-  color: var(--green);
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
-}
-
-.float-wrong {
-  color: var(--red);
-  text-shadow: 0 0 8px rgba(255, 51, 85, 0.5);
-}
-
-/* ── Ripple (created via JS) ── */
-.ripple {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 150;
-  animation: ripple-expand 0.4s ease forwards;
-}
-
-.ripple-correct {
-  background: var(--green-dim);
-}
-
-.ripple-wrong {
-  background: var(--red-dim);
-}
-
-/* ── Score flash ── */
-.flash-green {
-  animation: flash-green-kf 0.2s ease;
-}
-
-.flash-red {
-  animation: flash-red-kf 0.2s ease;
 }

@@ -35,167 +35,60 @@ useHead({ title: 'Symbol Rush' })
 </script>
 
 <template>
-  <div class="landing grid-bg">
-    <div class="landing-container">
-      <h1 class="title">SYMBOL<span class="rush">RUSH</span></h1>
-      <p class="subtitle">Match the symbol. Beat the clock. Win the prize.</p>
+  <div class="grid-bg min-h-dvh flex items-center justify-center p-6">
+    <div class="max-w-[400px] w-full text-center relative z-1">
+      <h1 class="font-mono font-black text-primary text-[clamp(2.5rem,8vw,3.5rem)] tracking-wide mb-2 title-glow">
+        SYMBOL<span class="text-neutral-400">RUSH</span>
+      </h1>
+      <p class="text-neutral-400 mb-12">
+        Match the symbol. Beat the clock. Win the prize.
+      </p>
 
-      <div v-if="mode === 'choose'" class="actions">
-        <button class="btn btn-primary" @click="mode = 'join'">Join Game</button>
-        <button class="btn btn-outline" @click="handleHost">Host a Room</button>
+      <div v-if="mode === 'choose'" class="flex flex-col gap-3">
+        <UButton block size="lg" @click="mode = 'join'">
+          Join Game
+        </UButton>
+        <UButton block size="lg" variant="outline" @click="handleHost">
+          Host a Room
+        </UButton>
       </div>
 
-      <form v-else class="join-form" @submit.prevent="handleJoin">
-        <input
+      <form v-else class="flex flex-col gap-3" @submit.prevent="handleJoin">
+        <UInput
           v-model="roomCode"
-          type="text"
           placeholder="ROOM CODE"
+          size="lg"
+          :ui="{ base: 'font-mono font-bold text-2xl text-center tracking-[0.15em]' }"
           maxlength="6"
-          class="input input-code"
           autocapitalize="characters"
           @input="roomCode = roomCode.toUpperCase()"
         />
-        <input
+        <UInput
           v-model="username"
-          type="text"
           placeholder="Your name"
+          size="lg"
           maxlength="20"
-          class="input"
         />
-        <p v-if="error" class="error-text">{{ error }}</p>
-        <button type="submit" class="btn btn-primary" :disabled="loading">
-          {{ loading ? 'Joining...' : "Let's Go" }}
-        </button>
-        <button type="button" class="btn btn-ghost" @click="mode = 'choose'; error = ''">
-          ← Back
-        </button>
+        <p v-if="error" class="text-error text-sm">{{ error }}</p>
+        <UButton block size="lg" type="submit" :loading="loading">
+          Let's Go
+        </UButton>
+        <UButton
+          block
+          size="lg"
+          variant="ghost"
+          color="neutral"
+          @click="mode = 'choose'; error = ''"
+        >
+          &larr; Back
+        </UButton>
       </form>
     </div>
   </div>
 </template>
 
 <style scoped>
-.landing {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.landing-container {
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.title {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 900;
-  font-size: clamp(2.5rem, 8vw, 3.5rem);
-  color: var(--cyan);
-  text-shadow: 0 0 30px var(--cyan-glow), 0 0 60px rgba(0, 232, 255, 0.15);
-  letter-spacing: 0.04em;
-  margin-bottom: 8px;
-}
-
-.rush {
-  color: var(--muted);
-}
-
-.subtitle {
-  font-family: 'Outfit', sans-serif;
-  color: var(--muted);
-  font-size: 1rem;
-  margin-bottom: 48px;
-}
-
-.actions,
-.join-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.input {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1rem;
-  padding: 14px 18px;
-  background: var(--surface2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input:focus {
-  border-color: var(--cyan);
-}
-
-.input-code {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 700;
-  font-size: 1.5rem;
-  text-align: center;
-  letter-spacing: 0.15em;
-}
-
-.error-text {
-  color: var(--red);
-  font-size: 0.875rem;
-}
-
-.btn {
-  font-family: 'Azeret Mono', monospace;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 14px 24px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-.btn-primary {
-  background: var(--cyan);
-  color: var(--bg);
-}
-
-.btn-primary:hover {
-  box-shadow: 0 0 20px var(--cyan-glow);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--cyan);
-  border: 1.5px solid rgba(0, 232, 255, 0.3);
-}
-
-.btn-outline:hover {
-  border-color: var(--cyan);
-  background: var(--cyan-dim);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--muted);
-}
-
-.btn-ghost:hover {
-  color: var(--text);
+.dark .title-glow {
+  text-shadow: 0 0 30px rgba(0, 232, 255, 0.35), 0 0 60px rgba(0, 232, 255, 0.15);
 }
 </style>
