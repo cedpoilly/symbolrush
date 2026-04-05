@@ -1,13 +1,18 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   future: { compatibilityVersion: 4 },
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   modules: [
     '@nuxt/ui',
+    '@nuxt/hints',
     '@nuxtjs/google-fonts',
     '@nuxtjs/storybook',
   ],
+
+  colorMode: {
+    preference: 'dark', // TODO: add a light/dark mode toggle in the UI
+  },
 
   ui: {
     theme: {
