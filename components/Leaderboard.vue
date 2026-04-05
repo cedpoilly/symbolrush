@@ -27,7 +27,7 @@ function isNewBest(entry: LeaderboardEntry): boolean {
         :style="{ animationDelay: `${index * 0.06}s` }"
       />
     </template>
-    <p v-else class="text-sm text-neutral-400">
+    <p v-else class="text-sm text-neutral-300">
       No scores yet
     </p>
   </div>

@@ -13,7 +13,7 @@ function getScore(playerId: string, scores?: Map<string, number> | Record<string
 
 <template>
   <div>
-    <p v-if="players.length === 0" class="text-sm text-neutral-400">
+    <p v-if="players.length === 0" class="text-sm text-neutral-300">
       No players yet — share the room code
     </p>
     <div v-else class="flex flex-col gap-1">

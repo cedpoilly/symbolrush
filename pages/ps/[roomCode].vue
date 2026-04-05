@@ -126,22 +126,24 @@ useHead({
     />
 
     <!-- Connecting -->
+    <h1 class="sr-only">Symbol Rush — Public Screen</h1>
+
     <div v-if="phase === 'connecting'" class="min-h-dvh flex items-center justify-center relative z-1">
-      <p class="font-mono text-neutral-400">Connecting to room...</p>
+      <p class="font-mono text-neutral-300">Connecting to room...</p>
     </div>
 
     <!-- Lobby -->
     <div v-else-if="phase === 'lobby'" class="min-h-dvh grid grid-cols-[3fr_1fr] relative z-1 p-10 gap-6">
       <div class="flex flex-col items-center justify-center gap-6">
         <div class="text-center">
-          <span class="block font-mono text-sm text-neutral-400 uppercase tracking-[0.15em] mb-2">SCAN TO JOIN</span>
+          <span class="block font-mono text-sm text-neutral-300 uppercase tracking-[0.15em] mb-2">SCAN TO JOIN</span>
         </div>
         <QRJoinDisplay :room-code="roomCode" />
       </div>
 
       <div class="flex flex-col gap-3 py-5 self-center">
         <template v-if="players.length > 0">
-          <p class="font-mono text-sm text-neutral-400">
+          <p class="font-mono text-sm text-neutral-300">
             <span class="font-bold text-neutral-100">{{ players.length }}</span> player{{ players.length !== 1 ? 's' : '' }}
           </p>
           <div class="flex flex-col gap-1.5 overflow-hidden max-h-[60vh]">
@@ -156,7 +158,7 @@ useHead({
             </UBadge>
           </div>
         </template>
-        <p class="font-mono text-sm text-neutral-400 mt-auto">
+        <p class="font-mono text-sm text-neutral-300 mt-auto">
           Starts in <span class="font-bold text-primary">{{ lobbyCountdown }}</span>s
         </p>
       </div>
@@ -175,16 +177,16 @@ useHead({
           </span>
         </Transition>
       </div>
-      <p class="font-mono text-2xl text-neutral-400">
+      <p class="font-mono text-2xl text-neutral-300">
         <span class="font-bold text-neutral-100">{{ secondsRemaining }}</span>s
       </p>
     </div>
 
     <!-- Results -->
     <div v-else-if="phase === 'results'" class="min-h-dvh flex flex-col items-center justify-center gap-6 p-10 relative z-1">
-      <h2 class="font-mono text-sm text-neutral-400 uppercase tracking-[0.15em]">BEST SCORES</h2>
+      <h2 class="font-mono text-sm text-neutral-300 uppercase tracking-[0.15em]">BEST SCORES</h2>
       <Leaderboard :entries="leaderboard" :session-scores="sessionScores" />
-      <p class="font-mono text-sm text-neutral-400">
+      <p class="font-mono text-sm text-neutral-300">
         Next round in <span class="font-bold text-primary">{{ lobbyCountdown }}</span>s
       </p>
     </div>
@@ -192,7 +194,7 @@ useHead({
     <!-- Bottom bar -->
     <div class="fixed bottom-0 left-0 right-0 px-6 py-4 flex items-center justify-between z-50">
       <span class="font-mono font-bold text-xs tracking-wide">
-        <span class="text-primary">SYMBOL</span><span class="text-neutral-400">RUSH</span>
+        <span class="text-primary">SYMBOL</span><span class="text-neutral-300">RUSH</span>
       </span>
       <span
         class="w-2 h-2 rounded-full transition-colors"

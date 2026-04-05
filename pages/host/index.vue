@@ -135,7 +135,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
       <!-- Header -->
       <div class="flex items-center justify-between pb-6 mb-6 border-b border-neutral-800">
         <h1 class="font-mono font-black text-xl text-primary tracking-wide">
-          SYMBOL<span class="text-neutral-400">RUSH</span>
+          SYMBOL<span class="text-neutral-300">RUSH</span>
         </h1>
         <span
           class="w-2 h-2 rounded-full transition-colors"
@@ -145,14 +145,14 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
       <!-- Connecting -->
       <div v-if="phase === 'connecting'" class="py-4">
-        <p class="font-mono text-neutral-400">Creating room...</p>
+        <p class="font-mono text-neutral-300">Creating room...</p>
       </div>
 
       <template v-else>
         <!-- Room info -->
         <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="flex items-baseline gap-3 mb-2">
-            <span class="text-sm text-neutral-400">Room</span>
+            <span class="text-sm text-neutral-300">Room</span>
             <RoomCodeDisplay :code="roomCode" size="sm" />
           </div>
           <GameStatusBanner :status="phase" :round-count="roundCount" />
@@ -160,7 +160,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
         <!-- Join Link -->
         <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Join Link</h2>
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Join Link</h2>
           <div class="flex gap-2">
             <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
               Copy
@@ -174,7 +174,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
         <!-- Public Screen actions -->
         <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Public Screen</h2>
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Public Screen</h2>
           <div class="flex gap-2">
             <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
               Open
@@ -191,7 +191,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
         <!-- Players -->
         <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3 flex items-center gap-2">
             Players
             <UBadge variant="subtle" color="neutral" size="xs">{{ players.length }}</UBadge>
           </h2>
@@ -208,15 +208,15 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             />
           </div>
           <div class="flex items-center gap-3">
-            <span class="font-mono text-sm text-neutral-400">Current symbol:</span>
+            <span class="font-mono text-sm text-neutral-300">Current symbol:</span>
             <span class="text-2xl">{{ currentSymbol }}</span>
-            <span class="font-mono text-sm text-neutral-400">{{ secondsRemaining }}s left</span>
+            <span class="font-mono text-sm text-neutral-300">{{ secondsRemaining }}s left</span>
           </div>
         </UCard>
 
         <!-- Round results -->
         <UCard v-if="phase === 'results' && sessionScores.length > 0" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Last Round</h2>
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Last Round</h2>
           <div class="flex flex-col gap-1">
             <UCard
               v-for="(s, i) in sessionScores.slice(0, 5)"
@@ -224,7 +224,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
               variant="subtle"
               :ui="{ body: 'flex items-center gap-2 p-2 px-3 text-sm' }"
             >
-              <span class="font-mono text-xs text-neutral-400 min-w-[28px]">#{{ i + 1 }}</span>
+              <span class="font-mono text-xs text-neutral-300 min-w-[28px]">#{{ i + 1 }}</span>
               <span class="flex-1">{{ s.username }}</span>
               <span class="font-mono font-bold text-primary">{{ s.score }}</span>
             </UCard>
@@ -242,7 +242,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           >
             {{ phase === 'results' ? 'Next Round' : 'Start Round' }}
           </UButton>
-          <p v-if="phase === 'playing'" class="font-mono text-neutral-400 text-sm">
+          <p v-if="phase === 'playing'" class="font-mono text-neutral-300 text-sm">
             Round in progress...
           </p>
         </div>
