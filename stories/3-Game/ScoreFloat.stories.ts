@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import ScoreFloat from '~/components/game/ScoreFloat.vue'
+import SymbolGrid from '~/components/game/SymbolGrid.vue'
 import { ref } from 'vue'
 
 const meta: Meta<typeof ScoreFloat> = {
@@ -11,18 +12,23 @@ type Story = StoryObj<typeof ScoreFloat>
 
 export const Interactive: Story = {
   render: () => ({
-    components: { ScoreFloat },
+    components: { ScoreFloat, SymbolGrid },
     setup() {
       const floatRef = ref<InstanceType<typeof ScoreFloat> | null>(null)
-      function showCorrect(e: MouseEvent) { floatRef.value?.show(e.clientX, e.clientY, true, 10) }
-      function showWrong(e: MouseEvent) { floatRef.value?.show(e.clientX, e.clientY, false, -5) }
-      return { floatRef, showCorrect, showWrong }
+      const correctSymbol = '▲'
+
+      function handleTap(event: MouseEvent, symbol: string) {
+        const correct = symbol === correctSymbol
+        floatRef.value?.show(event.clientX, event.clientY, correct, correct ? 10 : -5)
+      }
+
+      return { floatRef, handleTap }
     },
     template: `
-      <div style="padding: 48px; display: flex; gap: 16px;">
+      <div style="min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px;">
         <ScoreFloat ref="floatRef" />
-        <button @click="showCorrect" style="padding: 16px 32px; background: var(--color-green-400); color: #06060e; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;">Click for +10</button>
-        <button @click="showWrong" style="padding: 16px 32px; background: var(--color-red-400); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;">Click for -5</button>
+        <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">Tap ▲ for +10, others for -5</p>
+        <SymbolGrid :symbols="['▲', '●', '■', '✦']" @tap="handleTap" />
       </div>
     `,
   }),
