@@ -14,7 +14,7 @@ function generateRoomCode(): string {
 
 function pickRandomFrom<T>(arr: readonly T[], exclude?: T): T {
   const available = exclude != null ? arr.filter(s => s !== exclude) : [...arr]
-  return available[Math.floor(Math.random() * available.length)]
+  return available[Math.floor(Math.random() * available.length)]!
 }
 
 // ── In-memory state ──
@@ -161,6 +161,19 @@ export function handleTap(
   player.currentSessionScore = newScore
 
   return { correct, delta, newScore }
+}
+
+export function getSessionScores(roomCode: string): SessionScore[] {
+  const room = rooms.get(roomCode)
+  if (!room || !room.currentSession) return []
+
+  const scores: SessionScore[] = []
+  for (const [playerId, score] of room.currentSession.scores) {
+    const player = room.players.get(playerId)
+    if (!player) continue
+    scores.push({ playerId, username: player.username, score })
+  }
+  return scores.sort((a, b) => b.score - a.score)
 }
 
 export function endSession(roomCode: string): SessionScore[] {

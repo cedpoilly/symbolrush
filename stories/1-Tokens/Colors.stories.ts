@@ -33,7 +33,7 @@ const ColorPalette = {
 
 const meta: Meta = {
   title: '1-Tokens/Colors',
-  component: ColorPalette,
+  component: ColorPalette as any,
 }
 
 export default meta

@@ -38,9 +38,9 @@ useHead({ title: 'Symbol Rush' })
   <div class="grid-bg min-h-dvh flex items-center justify-center p-6">
     <div class="max-w-[400px] w-full text-center relative z-1">
       <h1 class="font-mono font-black text-primary text-[clamp(2.5rem,8vw,3.5rem)] tracking-wide mb-2 title-glow">
-        SYMBOL<span class="text-neutral-400">RUSH</span>
+        SYMBOL<span class="text-neutral-300">RUSH</span>
       </h1>
-      <p class="text-neutral-400 mb-12">
+      <p class="text-neutral-300 mb-12">
         Match the symbol. Beat the clock. Win the prize.
       </p>
 
@@ -54,7 +54,7 @@ useHead({ title: 'Symbol Rush' })
       </div>
 
       <form v-else class="flex flex-col gap-3" @submit.prevent="handleJoin">
-        <UInput
+        <LazyUInput
           v-model="roomCode"
           placeholder="ROOM CODE"
           size="lg"
@@ -63,7 +63,7 @@ useHead({ title: 'Symbol Rush' })
           autocapitalize="characters"
           @input="roomCode = roomCode.toUpperCase()"
         />
-        <UInput
+        <LazyUInput
           v-model="username"
           placeholder="Your name"
           size="lg"

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import PlayerList from '~/components/game/PlayerList.vue'
+import PlayerList from '~/components/PlayerList.vue'
 
 const players = [
   { id: '1', username: 'Alice' },

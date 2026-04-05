@@ -77,23 +77,28 @@ const psFullUrl = computed(() => {
   return `${window.location.origin}/ps/${roomCode.value}`
 })
 
+const joinUrl = computed(() => {
+  if (!roomCode.value || import.meta.server) return ''
+  return `${window.location.origin}/?room=${roomCode.value}`
+})
+
 function openPublicScreen() {
   window.open(`/ps/${roomCode.value}`, '_blank')
 }
 
 const toast = useToast()
-async function copyPublicScreenUrl() {
+async function copyUrl(url: string, label: string) {
   try {
-    await navigator.clipboard.writeText(psFullUrl.value)
+    await navigator.clipboard.writeText(url)
   } catch {
     const input = document.createElement('input')
-    input.value = psFullUrl.value
+    input.value = url
     document.body.appendChild(input)
     input.select()
     document.execCommand('copy')
     input.remove()
   }
-  toast.add({ title: 'URL copied!', color: 'success' })
+  toast.add({ title: `${label} copied!`, color: 'success' })
 }
 
 const canShare = ref(false)
@@ -101,13 +106,9 @@ onMounted(() => {
   canShare.value = typeof navigator !== 'undefined' && !!navigator.share
 })
 
-async function sharePublicScreenUrl() {
+async function shareUrl(url: string, title: string, text: string) {
   try {
-    await navigator.share({
-      title: 'Symbol Rush — Public Screen',
-      text: `Join Symbol Rush! Room: ${roomCode.value}`,
-      url: psFullUrl.value,
-    })
+    await navigator.share({ title, text, url })
   } catch { /* User cancelled */ }
 }
 
@@ -134,7 +135,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
       <!-- Header -->
       <div class="flex items-center justify-between pb-6 mb-6 border-b border-neutral-800">
         <h1 class="font-mono font-black text-xl text-primary tracking-wide">
-          SYMBOL<span class="text-neutral-400">RUSH</span>
+          SYMBOL<span class="text-neutral-300">RUSH</span>
         </h1>
         <span
           class="w-2 h-2 rounded-full transition-colors"
@@ -144,47 +145,62 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
       <!-- Connecting -->
       <div v-if="phase === 'connecting'" class="py-4">
-        <p class="font-mono text-neutral-400">Creating room...</p>
+        <p class="font-mono text-neutral-300">Creating room...</p>
       </div>
 
       <template v-else>
         <!-- Room info -->
-        <div class="py-4 border-b border-neutral-900">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="flex items-baseline gap-3 mb-2">
-            <span class="text-sm text-neutral-400">Room</span>
+            <span class="text-sm text-neutral-300">Room</span>
             <RoomCodeDisplay :code="roomCode" size="sm" />
           </div>
           <GameStatusBanner :status="phase" :round-count="roundCount" />
-        </div>
+        </UCard>
 
-        <!-- Public Screen actions -->
-        <div class="py-4 border-b border-neutral-900">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Public Screen</h2>
-          <div class="flex gap-2">
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
-              Open
-            </UButton>
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyPublicScreenUrl">
-              Copy URL
-            </UButton>
-            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="sharePublicScreenUrl">
-              Share
-            </UButton>
-          </div>
-          <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
-        </div>
+        <!-- Join Link + PS (collapsed during play/results) -->
+        <template v-if="phase === 'lobby'">
+          <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+            <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Join Link</h2>
+            <div class="flex gap-2">
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
+                Copy
+              </UButton>
+              <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(joinUrl, 'Join Symbol Rush', `Join Symbol Rush! Room: ${roomCode}`)">
+                Share
+              </UButton>
+            </div>
+            <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ joinUrl }}</p>
+          </UCard>
+
+          <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+            <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Public Screen</h2>
+            <div class="flex gap-2">
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
+                Open
+              </UButton>
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(psFullUrl, 'PS link')">
+                Copy URL
+              </UButton>
+              <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(psFullUrl, 'Symbol Rush — Public Screen', `Join Symbol Rush! Room: ${roomCode}`)">
+                Share
+              </UButton>
+            </div>
+            <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
+          </UCard>
+        </template>
 
         <!-- Players -->
-        <div class="py-4 border-b border-neutral-900">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3 flex items-center gap-2">
             Players
             <UBadge variant="subtle" color="neutral" size="xs">{{ players.length }}</UBadge>
           </h2>
           <PlayerList :players="players" :scores="playerScores" />
-        </div>
+        </UCard>
 
         <!-- Playing state -->
-        <div v-if="phase === 'playing'" class="py-4 border-b border-neutral-900">
+        <UCard v-if="phase === 'playing'" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="h-[3px] bg-neutral-800 rounded-full mb-3 overflow-hidden">
             <div
               class="h-full transition-[width] duration-100"
@@ -193,30 +209,31 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             />
           </div>
           <div class="flex items-center gap-3">
-            <span class="font-mono text-sm text-neutral-400">Current symbol:</span>
+            <span class="font-mono text-sm text-neutral-300">Current symbol:</span>
             <span class="text-2xl">{{ currentSymbol }}</span>
-            <span class="font-mono text-sm text-neutral-400">{{ secondsRemaining }}s left</span>
+            <span class="font-mono text-sm text-neutral-300">{{ secondsRemaining }}s left</span>
           </div>
-        </div>
+        </UCard>
 
         <!-- Round results -->
-        <div v-if="phase === 'results' && sessionScores.length > 0" class="py-4 border-b border-neutral-900">
-          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Last Round</h2>
+        <UCard v-if="phase === 'results' && sessionScores.length > 0" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Last Round</h2>
           <div class="flex flex-col gap-1">
-            <div
+            <UCard
               v-for="(s, i) in sessionScores.slice(0, 5)"
               :key="s.playerId"
-              class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 rounded-lg text-sm"
+              variant="subtle"
+              :ui="{ body: 'flex items-center gap-2 p-2 px-3 text-sm' }"
             >
-              <span class="font-mono text-xs text-neutral-400 min-w-[28px]">#{{ i + 1 }}</span>
+              <span class="font-mono text-xs text-neutral-300 min-w-[28px]">#{{ i + 1 }}</span>
               <span class="flex-1">{{ s.username }}</span>
               <span class="font-mono font-bold text-primary">{{ s.score }}</span>
-            </div>
+            </UCard>
           </div>
-        </div>
+        </UCard>
 
         <!-- Controls -->
-        <div class="pt-5">
+        <div class="pt-2">
           <UButton
             v-if="phase === 'lobby' || phase === 'results'"
             block
@@ -226,7 +243,7 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           >
             {{ phase === 'results' ? 'Next Round' : 'Start Round' }}
           </UButton>
-          <p v-if="phase === 'playing'" class="font-mono text-neutral-400 text-sm">
+          <p v-if="phase === 'playing'" class="font-mono text-neutral-300 text-sm">
             Round in progress...
           </p>
         </div>

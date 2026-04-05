@@ -18,8 +18,8 @@ const symbolChoices = ref<Symbol[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const leaderboardRank = ref(0)
 
-const scoreFloatRef = ref<InstanceType<typeof ScoreFloat> | null>(null)
-const scoreDisplayRef = ref<InstanceType<typeof ScoreDisplay> | null>(null)
+const scoreFloatRef = ref<{ show: (x: number, y: number, correct: boolean, delta: number) => void } | null>(null)
+const scoreDisplayRef = ref<{ flash: (correct: boolean) => void } | null>(null)
 const lastTapPos = ref<{ x: number; y: number } | null>(null)
 
 onMounted(() => {
@@ -114,9 +114,11 @@ useHead({
     />
     <ScoreFloat ref="scoreFloatRef" />
 
+    <h1 class="sr-only">Symbol Rush — Game</h1>
+
     <!-- Connecting -->
     <div v-if="phase === 'connecting'" class="min-h-dvh flex items-center justify-center relative z-1">
-      <p class="font-mono text-neutral-400">Joining room...</p>
+      <p class="font-mono text-neutral-300">Joining room...</p>
     </div>
 
     <!-- Waiting -->
@@ -124,52 +126,54 @@ useHead({
       <span class="text-5xl">👀</span>
       <h1 class="font-mono font-black text-3xl text-primary">You're in!</h1>
       <p>Room: <strong>{{ roomCode }}</strong></p>
-      <p class="text-neutral-400 text-sm text-center">Watch the projector — game starts any moment</p>
+      <p class="text-neutral-300 text-sm text-center">Watch the projector — game starts any moment</p>
       <UBadge variant="outline" color="neutral" size="sm">
         <span class="font-mono">playing as {{ username }}</span>
       </UBadge>
     </div>
 
     <!-- Playing -->
-    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center pt-6 px-6 relative z-1 gap-4">
+    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center justify-between pt-6 pb-16 px-6 relative z-1">
       <div class="w-full flex justify-between items-center px-1">
-        <span class="font-mono text-neutral-400">{{ secondsRemaining }}s</span>
+        <span class="font-mono text-neutral-300">{{ secondsRemaining }}s</span>
         <ScoreDisplay ref="scoreDisplayRef" :score="score" />
       </div>
-      <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">
+      <p class="font-mono text-neutral-300 text-xs uppercase tracking-widest mt-4">
         TAP THE SYMBOL ON SCREEN!
       </p>
       <SymbolGrid
         :symbols="symbolChoices"
-        class="mt-auto mb-auto"
+        class="my-auto"
         @tap="handleTap"
       />
     </div>
 
     <!-- Results -->
     <div v-else-if="phase === 'results'" class="min-h-dvh flex flex-col items-center justify-center p-6 relative z-1 gap-4">
-      <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">Round over</p>
-      <h1 class="font-mono font-black text-3xl text-primary">Nice run!</h1>
+      <p class="font-mono text-neutral-300 text-xs uppercase tracking-widest">Round over</p>
+      <h1 class="font-mono font-black text-3xl text-primary">
+        {{ roundScore > 0 ? 'Nice run!' : roundScore === 0 ? 'Warm up round!' : 'Keep going!' }}
+      </h1>
       <div class="flex gap-4 w-full max-w-[340px]">
-        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
-          <span class="text-xs text-neutral-400 block mb-1">Round Score</span>
+        <UCard variant="subtle" :ui="{ body: 'p-4 text-center' }" class="flex-1">
+          <span class="text-xs text-neutral-300 block mb-1">Round Score</span>
           <span class="font-mono font-black text-3xl text-primary">{{ roundScore }}</span>
-        </div>
-        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
-          <span class="text-xs text-neutral-400 block mb-1">Personal Best</span>
+        </UCard>
+        <UCard variant="subtle" :ui="{ body: 'p-4 text-center' }" class="flex-1">
+          <span class="text-xs text-neutral-300 block mb-1">Personal Best</span>
           <span class="font-mono font-black text-3xl text-warning">{{ personalBest }}</span>
-        </div>
+        </UCard>
       </div>
       <UBadge variant="outline" color="primary" size="md">
         <span class="font-mono">#{{ leaderboardRank }} on leaderboard</span>
       </UBadge>
-      <p class="text-neutral-400 text-sm">Next round starting soon...</p>
+      <p class="text-neutral-300 text-sm">Next round starting soon...</p>
     </div>
 
     <!-- Bottom bar -->
     <div class="fixed bottom-0 left-0 right-0 px-6 py-4 flex items-center justify-between z-50">
       <span class="font-mono font-bold text-xs tracking-wide">
-        <span class="text-primary">SYMBOL</span><span class="text-neutral-400">RUSH</span>
+        <span class="text-primary">SYMBOL</span><span class="text-neutral-300">RUSH</span>
       </span>
       <span
         class="w-2 h-2 rounded-full transition-colors"

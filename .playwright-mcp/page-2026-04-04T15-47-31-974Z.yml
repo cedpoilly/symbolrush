@@ -1,0 +1,64 @@
+- generic [ref=e3]:
+  - navigation "Global" [ref=e6]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - link "Skip to canvas" [ref=e12] [cursor=pointer]:
+          - /url: "#storybook-preview-wrapper"
+        - link "Storybook" [ref=e14] [cursor=pointer]:
+          - /url: ./
+          - img "Storybook" [ref=e15]
+        - button "Shortcuts" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+      - generic [ref=e25]: Search for components
+      - combobox "Search for components" [ref=e27]:
+        - generic:
+          - img
+        - searchbox "Search for components" [ref=e28]
+        - code:
+          - generic: ⌘
+          - text: K
+  - main [ref=e52]:
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - button "Remount component" [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+        - button "Zoom in" [ref=e59] [cursor=pointer]:
+          - img [ref=e60]
+        - button "Zoom out" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+        - button "Reset zoom" [ref=e67] [cursor=pointer]:
+          - img [ref=e68]
+        - button "Enable measure" [ref=e71] [cursor=pointer]:
+          - img [ref=e72]
+        - button "Apply outlines to the preview" [ref=e75] [cursor=pointer]:
+          - img [ref=e76]
+        - button "Change the size of the preview" [ref=e79] [cursor=pointer]:
+          - img [ref=e80]
+      - generic [ref=e84]:
+        - button "Go full screen" [ref=e85] [cursor=pointer]:
+          - img [ref=e86]
+        - link "Open canvas in new tab" [ref=e88] [cursor=pointer]:
+          - /url: iframe.html?id=2-nuxtui-button--all-variants
+          - img [ref=e89]
+        - button "Copy canvas link" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+    - generic [ref=e97]:
+      - progressbar "Content is loading..." [ref=e99]
+      - generic [ref=e100]:
+        - link "Skip to sidebar" [ref=e101] [cursor=pointer]:
+          - /url: "#2-nuxtui-button--all-variants"
+        - iframe [ref=e102]:
+          
+  - generic [ref=e107]:
+    - tablist [ref=e109]:
+      - tab "Controls" [ref=e110] [cursor=pointer]:
+        - generic [ref=e112]: Controls
+      - tab "Actions" [ref=e113] [cursor=pointer]:
+        - generic [ref=e115]: Actions
+      - tab "Interactions" [ref=e116] [cursor=pointer]:
+        - generic [ref=e118]: Interactions
+    - generic [ref=e121]:
+      - button "Change addon orientation [⌥ D]" [ref=e122] [cursor=pointer]:
+        - img [ref=e123]
+      - button "Hide addons [⌥ A]" [ref=e126] [cursor=pointer]:
+        - img [ref=e127]

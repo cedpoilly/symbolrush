@@ -1,0 +1,144 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - banner "Storybook" [ref=e6]:
+      - heading "Storybook" [level=1] [ref=e7]
+      - img
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - link "Skip to content" [ref=e14] [cursor=pointer]:
+              - /url: "#storybook-preview-wrapper"
+            - link "Storybook" [ref=e16] [cursor=pointer]:
+              - /url: ./
+              - img "Storybook" [ref=e17]
+            - switch "Settings" [ref=e22] [cursor=pointer]:
+              - img [ref=e23]
+          - generic [ref=e28]:
+            - generic [ref=e30] [cursor=pointer]:
+              - button "Open onboarding guide" [ref=e34]:
+                - img [ref=e36]
+                - strong [ref=e38]: Get started
+              - generic [ref=e39]:
+                - button "Collapse onboarding guide" [expanded] [ref=e40]:
+                  - img [ref=e41]
+                - button "40% completed" [ref=e43]:
+                  - generic [ref=e44]:
+                    - img [ref=e45]
+                    - img [ref=e47]
+                  - generic [ref=e50]: 40%
+            - list [ref=e52]
+        - generic [ref=e53]: Search for components
+        - search [ref=e54]:
+          - combobox "Search for components" [ref=e55]:
+            - generic:
+              - img
+            - searchbox "Search for components" [ref=e56]
+            - code:
+              - generic: ⌘
+              - text: K
+            - button "Tag filters" [ref=e58] [cursor=pointer]:
+              - img [ref=e59]
+        - navigation "Stories" [ref=e62]:
+          - heading "Stories" [level=2] [ref=e63]
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - button "Collapse" [expanded] [ref=e67] [cursor=pointer]:
+                - img [ref=e69]
+                - text: Foundations
+              - button "Expand all" [ref=e71] [cursor=pointer]:
+                - img [ref=e72]
+            - button "Buttons" [ref=e75] [cursor=pointer]:
+              - generic [ref=e76]:
+                - img [ref=e78]
+                - img [ref=e80]
+              - text: Buttons
+            - button "Design Tokens" [ref=e83] [cursor=pointer]:
+              - generic [ref=e84]:
+                - img [ref=e86]
+                - img [ref=e88]
+              - text: Design Tokens
+            - button "Form Patterns" [ref=e91] [cursor=pointer]:
+              - generic [ref=e92]:
+                - img [ref=e94]
+                - img [ref=e96]
+              - text: Form Patterns
+            - generic [ref=e98]:
+              - button "Collapse" [expanded] [ref=e99] [cursor=pointer]:
+                - img [ref=e101]
+                - text: Navigation
+              - button "Expand all" [ref=e103] [cursor=pointer]:
+                - img [ref=e104]
+            - button "BottomNav" [ref=e107] [cursor=pointer]:
+              - generic [ref=e108]:
+                - img [ref=e110]
+                - img [ref=e112]
+              - text: BottomNav
+            - button "MoreMenu" [ref=e115] [cursor=pointer]:
+              - generic [ref=e116]:
+                - img [ref=e118]
+                - img [ref=e120]
+              - text: MoreMenu
+            - generic [ref=e122]:
+              - button "Collapse" [expanded] [ref=e123] [cursor=pointer]:
+                - img [ref=e125]
+                - text: Utility
+              - button "Expand all" [ref=e127] [cursor=pointer]:
+                - img [ref=e128]
+            - button "DevMenu" [ref=e131] [cursor=pointer]:
+              - generic [ref=e132]:
+                - img [ref=e134]
+                - img [ref=e136]
+              - text: DevMenu
+            - button "NetworkBanner" [ref=e139] [cursor=pointer]:
+              - generic [ref=e140]:
+                - img [ref=e142]
+                - img [ref=e144]
+              - text: NetworkBanner
+            - generic [ref=e146]:
+              - button "Collapse" [expanded] [ref=e147] [cursor=pointer]:
+                - img [ref=e149]
+                - text: Hunt
+              - button "Expand all" [ref=e151] [cursor=pointer]:
+                - img [ref=e152]
+            - button "HuntHero" [ref=e155] [cursor=pointer]:
+              - generic [ref=e156]:
+                - img [ref=e158]
+                - img [ref=e160]
+              - text: HuntHero
+            - button "HuntListItem" [ref=e163] [cursor=pointer]:
+              - generic [ref=e164]:
+                - img [ref=e166]
+                - img [ref=e168]
+              - text: HuntListItem
+            - button "RouteTracker" [ref=e171] [cursor=pointer]:
+              - generic [ref=e172]:
+                - img [ref=e174]
+                - img [ref=e176]
+              - text: RouteTracker
+            - generic [ref=e178]:
+              - button "Collapse" [expanded] [ref=e179] [cursor=pointer]:
+                - img [ref=e181]
+                - text: Illustrations
+              - button "Expand all" [ref=e183] [cursor=pointer]:
+                - img [ref=e184]
+            - button "MauritiusMap" [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]:
+                - img [ref=e190]
+                - img [ref=e192]
+              - text: MauritiusMap
+            - button "SplashScreen" [ref=e195] [cursor=pointer]:
+              - generic [ref=e196]:
+                - img [ref=e198]
+                - img [ref=e200]
+              - text: SplashScreen
+    - separator "Sidebar resize handle" [ref=e202]
+  - generic [ref=e204]:
+    - region "Toolbar" [ref=e205]:
+      - heading "Toolbar" [level=2] [ref=e206]
+      - toolbar [ref=e207]
+    - main "Main preview area" [ref=e208]:
+      - heading "Main preview area" [level=2] [ref=e209]
+      - generic [ref=e210]:
+        - progressbar "Content is loading..." [ref=e212]
+        - iframe [ref=e217]:
+          

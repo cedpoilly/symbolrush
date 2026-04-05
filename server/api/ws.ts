@@ -1,7 +1,7 @@
 import {
   createRoom, getRoom, addPlayer, removePlayer,
   startSession, rotateSymbol, handleTap, endSession,
-  getLeaderboard, getSessionTimeRemaining,
+  getLeaderboard, getSessionTimeRemaining, getSessionScores,
 } from '../utils/game-engine'
 import type { ClientMessage, ServerMessage } from '~/types/game'
 
@@ -14,6 +14,7 @@ interface PeerMeta {
 interface GameTimers {
   symbolInterval: ReturnType<typeof setInterval>
   tickInterval: ReturnType<typeof setInterval>
+  scoresInterval: ReturnType<typeof setInterval>
   endTimeout: ReturnType<typeof setTimeout>
 }
 
@@ -91,11 +92,17 @@ function startGameLoop(roomCode: string) {
     broadcast(roomCode, { type: 'session:tick', timeRemainingMs: remaining })
   }, 100)
 
+  // Live round scores to displays every 1s
+  const scoresInterval = setInterval(() => {
+    const scores = getSessionScores(roomCode)
+    sendToDisplays(roomCode, { type: 'session:scores-update', scores })
+  }, 1000)
+
   const endTimeout = setTimeout(() => {
     stopGameLoop(roomCode)
   }, config.sessionDurationMs)
 
-  gameTimers.set(roomCode, { symbolInterval, tickInterval, endTimeout })
+  gameTimers.set(roomCode, { symbolInterval, tickInterval, scoresInterval, endTimeout })
 }
 
 async function stopGameLoop(roomCode: string) {
@@ -103,6 +110,7 @@ async function stopGameLoop(roomCode: string) {
   if (timers) {
     clearInterval(timers.symbolInterval)
     clearInterval(timers.tickInterval)
+    clearInterval(timers.scoresInterval)
     clearTimeout(timers.endTimeout)
     gameTimers.delete(roomCode)
   }
@@ -137,7 +145,7 @@ async function flushSessionToDB(session: any, sessionScores: any[], roomCode: st
   // Upsert room
   await db.insert(schema.rooms).values({
     code: roomCode,
-    config: room?.config ?? {},
+    config: room?.config ?? { sessionDurationMs: 30000, symbolIntervalMs: 3000, pointsCorrect: 10, pointsPenalty: -5, symbolCount: 4 },
   }).onConflictDoNothing()
 
   // Upsert players
@@ -200,8 +208,8 @@ export default defineWebSocketHandler({
 
       case 'host:start-session': {
         const meta = peerMeta.get(peer.id)
-        if (!meta || meta.type !== 'host') {
-          sendTo(peer.id, { type: 'error', message: 'Not a host' })
+        if (!meta || (meta.type !== 'host' && meta.type !== 'screen')) {
+          sendTo(peer.id, { type: 'error', message: 'Not authorized' })
           return
         }
         const session = startSession(meta.roomCode)

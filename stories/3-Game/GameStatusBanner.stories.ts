@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import GameStatusBanner from '~/components/game/GameStatusBanner.vue'
+import GameStatusBanner from '~/components/GameStatusBanner.vue'
 
 const meta: Meta<typeof GameStatusBanner> = {
   title: '3-Game/GameStatusBanner',

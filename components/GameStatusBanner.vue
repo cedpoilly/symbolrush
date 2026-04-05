@@ -2,7 +2,7 @@
 import type { RoomStatus } from '~/types/game'
 
 defineProps<{
-  status: RoomStatus | 'lobby' | 'connecting'
+  status: RoomStatus | 'lobby' | 'connecting' | 'results'
   roundCount?: number
 }>()
 
@@ -25,7 +25,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
     >
       {{ statusConfig[status]?.label ?? status }}
     </UBadge>
-    <span v-if="roundCount" class="text-sm font-mono text-neutral-400">
+    <span v-if="roundCount" class="text-sm font-mono text-neutral-300">
       Round {{ roundCount }}
     </span>
   </div>

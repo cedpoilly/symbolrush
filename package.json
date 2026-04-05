@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -25,8 +26,11 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@nuxt/hints": "^1.0.3",
     "@nuxtjs/storybook": "^9.0.1",
+    "@playwright/test": "^1.59.1",
     "@types/qrcode": "^1.5.0",
+    "axe-core": "^4.11.2",
     "drizzle-kit": "^0.30.0",
     "typescript": "^5.7.0"
   }

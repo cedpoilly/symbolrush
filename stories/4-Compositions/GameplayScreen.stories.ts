@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import SymbolGrid from '~/components/game/SymbolGrid.vue'
-import ScoreDisplay from '~/components/game/ScoreDisplay.vue'
-import TimerBar from '~/components/game/TimerBar.vue'
+import SymbolGrid from '~/components/SymbolGrid.vue'
+import ScoreDisplay from '~/components/ScoreDisplay.vue'
+import TimerBar from '~/components/TimerBar.vue'
 
 const meta: Meta = {
   title: '4-Compositions/GameplayScreen',
