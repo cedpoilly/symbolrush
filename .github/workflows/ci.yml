@@ -1,0 +1,186 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Build
+        run: pnpm build
+
+  build-and-push:
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate git info for version
+        id: git-info
+        run: |
+          echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+          COMMITS=$(git log -10 --format='%h	%s	%aI	%an' | jq -R -s -c '
+            split("\n") | map(select(length > 0)) | map(
+              split("\t") | {sha: .[0], message: .[1], date: .[2], author: .[3]}
+            )
+          ')
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          FEAT_COUNT=$(git log --oneline | grep -iE "^[a-f0-9]+ feat" | wc -l | tr -d ' ')
+          FIX_COUNT=$(git log --oneline | grep -iE "^[a-f0-9]+ fix" | wc -l | tr -d ' ')
+          echo "version=0.${FEAT_COUNT}.${FIX_COUNT}" >> $GITHUB_OUTPUT
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_COMMIT=${{ steps.git-info.outputs.commit }}
+            BUILD_BRANCH=${{ steps.git-info.outputs.branch }}
+            BUILD_COMMITS=${{ steps.git-info.outputs.commits }}
+            BUILD_VERSION=${{ steps.git-info.outputs.version }}
+
+      - name: Trigger Coolify Deploy
+        run: |
+          curl -X GET "$COOLIFY_WEBHOOK_URL" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -H "Accept: application/json"
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+
+      - name: Verify deployed health and version
+        if: vars.DEPLOY_SMOKE_BASE_URL != ''
+        env:
+          DEPLOY_SMOKE_BASE_URL: ${{ vars.DEPLOY_SMOKE_BASE_URL }}
+        run: |
+          set -euo pipefail
+          BASE_URL="${DEPLOY_SMOKE_BASE_URL%/}"
+          TARGET_SHA="${GITHUB_SHA}"
+          TARGET_SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          echo "Waiting for deployment on ${BASE_URL}"
+
+          for attempt in $(seq 1 20); do
+            echo "Smoke check attempt ${attempt}/20"
+
+            HEALTH_JSON="$(curl --silent --show-error --fail "${BASE_URL}/api/health" || true)"
+            VERSION_JSON="$(curl --silent --show-error --fail "${BASE_URL}/api/version" || true)"
+
+            STATUS="$(echo "${HEALTH_JSON}" | jq -r '.status // empty' 2>/dev/null || true)"
+            DEPLOY_COMMIT="$(echo "${VERSION_JSON}" | jq -r '.commit // empty' 2>/dev/null || true)"
+
+            if [ "${STATUS}" = "ok" ] && { [ "${DEPLOY_COMMIT}" = "${TARGET_SHA}" ] || [ "${DEPLOY_COMMIT}" = "${TARGET_SHORT_SHA}" ]; }; then
+              echo "Smoke check passed: status=${STATUS}, commit=${DEPLOY_COMMIT}"
+              exit 0
+            fi
+
+            echo "Not ready yet (status=${STATUS:-n/a}, commit=${DEPLOY_COMMIT:-n/a}), retrying..."
+            sleep 15
+          done
+
+          echo "Deployment smoke check failed after retries"
+          exit 1
+
+  notify:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          if [ "${{ needs.test.result }}" = "failure" ] || [ "${{ needs.build-and-push.result }}" = "failure" ]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          else
+            echo "result=success" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send notification
+        continue-on-error: true
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PINGWA_API_KEY: ${{ secrets.PINGWA_API_KEY }}
+        run: |
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+          if [ "${{ steps.status.outputs.result }}" = "success" ]; then
+            ICON="✅"; TITLE="CI passed"
+          else
+            ICON="❌"; TITLE="CI failed"
+          fi
+          MSG=$(cat <<MSGEOF
+          *Symbol Rush*
+
+          ${ICON} ${TITLE}
+
+          🧾 ${FIRST_LINE}
+
+          ${RUN_URL}
+          MSGEOF
+          )
+          if [ -n "$PINGWA_API_KEY" ]; then
+            jq -n --arg text "$MSG" '{text: $text}' \
+              | curl --silent --show-error \
+                  --connect-timeout 5 --max-time 20 \
+                  --retry 2 --retry-delay 2 --retry-all-errors \
+                  -X POST https://notify.lerisquetout.app/api/v1/notify \
+                  -H "Content-Type: application/json" \
+                  -H "X-API-Key: $PINGWA_API_KEY" \
+                  -d @- || echo "::warning::Notification failed (non-blocking)"
+          fi
