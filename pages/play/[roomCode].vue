@@ -133,17 +133,17 @@ useHead({
     </div>
 
     <!-- Playing -->
-    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center pt-6 px-6 relative z-1 gap-4">
+    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center justify-between pt-6 pb-16 px-6 relative z-1">
       <div class="w-full flex justify-between items-center px-1">
         <span class="font-mono text-neutral-300">{{ secondsRemaining }}s</span>
         <ScoreDisplay ref="scoreDisplayRef" :score="score" />
       </div>
-      <p class="font-mono text-neutral-300 text-xs uppercase tracking-widest">
+      <p class="font-mono text-neutral-300 text-xs uppercase tracking-widest mt-4">
         TAP THE SYMBOL ON SCREEN!
       </p>
       <SymbolGrid
         :symbols="symbolChoices"
-        class="mt-auto mb-auto"
+        class="my-auto"
         @tap="handleTap"
       />
     </div>
@@ -151,7 +151,9 @@ useHead({
     <!-- Results -->
     <div v-else-if="phase === 'results'" class="min-h-dvh flex flex-col items-center justify-center p-6 relative z-1 gap-4">
       <p class="font-mono text-neutral-300 text-xs uppercase tracking-widest">Round over</p>
-      <h1 class="font-mono font-black text-3xl text-primary">Nice run!</h1>
+      <h1 class="font-mono font-black text-3xl text-primary">
+        {{ roundScore > 0 ? 'Nice run!' : roundScore === 0 ? 'Warm up round!' : 'Keep going!' }}
+      </h1>
       <div class="flex gap-4 w-full max-w-[340px]">
         <UCard variant="subtle" :ui="{ body: 'p-4 text-center' }" class="flex-1">
           <span class="text-xs text-neutral-300 block mb-1">Round Score</span>

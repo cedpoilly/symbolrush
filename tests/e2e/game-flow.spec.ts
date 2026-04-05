@@ -189,7 +189,7 @@ test.describe('Symbol Rush — Full Game Flow', () => {
   })
 
   test('15 — Player sees results', async () => {
-    await expect(playerPage.locator('text=Nice run')).toBeVisible({ timeout: 5000 })
+    await expect(playerPage.locator('text=/Nice run|Keep going|Warm up/')).toBeVisible({ timeout: 5000 })
     await screenshot(playerPage, '18-player-results')
   })
 
@@ -228,7 +228,7 @@ test.describe('Symbol Rush — Full Game Flow', () => {
     await psPage.waitForTimeout(1000)
     await screenshot(psPage, '24-ps-round-2-results')
 
-    await expect(playerPage.locator('text=Nice run')).toBeVisible({ timeout: 5000 })
+    await expect(playerPage.locator('text=/Nice run|Keep going|Warm up/')).toBeVisible({ timeout: 5000 })
     await screenshot(playerPage, '25-player-round-2-results')
   })
 })

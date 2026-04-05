@@ -158,36 +158,37 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           <GameStatusBanner :status="phase" :round-count="roundCount" />
         </UCard>
 
-        <!-- Join Link -->
-        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Join Link</h2>
-          <div class="flex gap-2">
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
-              Copy
-            </UButton>
-            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(joinUrl, 'Join Symbol Rush', `Join Symbol Rush! Room: ${roomCode}`)">
-              Share
-            </UButton>
-          </div>
-          <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ joinUrl }}</p>
-        </UCard>
+        <!-- Join Link + PS (collapsed during play/results) -->
+        <template v-if="phase === 'lobby'">
+          <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+            <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Join Link</h2>
+            <div class="flex gap-2">
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
+                Copy
+              </UButton>
+              <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(joinUrl, 'Join Symbol Rush', `Join Symbol Rush! Room: ${roomCode}`)">
+                Share
+              </UButton>
+            </div>
+            <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ joinUrl }}</p>
+          </UCard>
 
-        <!-- Public Screen actions -->
-        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
-          <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Public Screen</h2>
-          <div class="flex gap-2">
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
-              Open
-            </UButton>
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(psFullUrl, 'PS link')">
-              Copy URL
-            </UButton>
-            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(psFullUrl, 'Symbol Rush — Public Screen', `Join Symbol Rush! Room: ${roomCode}`)">
-              Share
-            </UButton>
-          </div>
-          <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
-        </UCard>
+          <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+            <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest mb-3">Public Screen</h2>
+            <div class="flex gap-2">
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
+                Open
+              </UButton>
+              <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(psFullUrl, 'PS link')">
+                Copy URL
+              </UButton>
+              <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(psFullUrl, 'Symbol Rush — Public Screen', `Join Symbol Rush! Room: ${roomCode}`)">
+                Share
+              </UButton>
+            </div>
+            <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
+          </UCard>
+        </template>
 
         <!-- Players -->
         <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">

@@ -15,6 +15,7 @@ const currentSymbol = ref<Symbol | null>(null)
 const timeRemainingMs = ref(30_000)
 const sessionDuration = ref(30_000)
 const sessionScores = ref<SessionScore[]>([])
+const roundScores = ref<SessionScore[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const recentJoins = ref<Array<{ id: string; username: string; ts: number }>>([])
 
@@ -77,9 +78,15 @@ on('room:player-left', (msg) => {
 on('session:started', (msg) => {
   if (msg.type !== 'session:started') return
   stopCountdown()
+  roundScores.value = []
   phase.value = 'playing'
   sessionDuration.value = msg.endsAt - Date.now()
   timeRemainingMs.value = sessionDuration.value
+})
+
+on('session:scores-update', (msg) => {
+  if (msg.type !== 'session:scores-update') return
+  roundScores.value = msg.scores
 })
 
 on('session:symbol-change', (msg) => {
@@ -165,21 +172,39 @@ useHead({
     </div>
 
     <!-- Playing -->
-    <div v-else-if="phase === 'playing'" class="min-h-dvh flex flex-col items-center justify-center gap-5 relative z-1">
-      <div class="flex items-center justify-center">
-        <Transition name="symbol" mode="out-in">
-          <span
-            :key="currentSymbol"
-            class="font-mono text-[clamp(80px,20vw,160px)] leading-none text-neutral-100"
-            style="text-shadow: 0 0 40px rgba(255,255,255,0.1)"
-          >
-            {{ currentSymbol }}
-          </span>
-        </Transition>
+    <div v-else-if="phase === 'playing'" class="min-h-dvh grid grid-cols-[3fr_1fr] relative z-1 p-10 gap-6">
+      <!-- Symbol (3/4) -->
+      <div class="flex flex-col items-center justify-center gap-5">
+        <div class="flex items-center justify-center">
+          <Transition name="symbol" mode="out-in">
+            <span
+              :key="currentSymbol"
+              class="font-mono text-[clamp(80px,20vw,160px)] leading-none text-neutral-100"
+              style="text-shadow: 0 0 40px rgba(255,255,255,0.1)"
+            >
+              {{ currentSymbol }}
+            </span>
+          </Transition>
+        </div>
+        <p class="font-mono text-2xl text-neutral-300">
+          <span class="font-bold text-neutral-100">{{ secondsRemaining }}</span>s
+        </p>
       </div>
-      <p class="font-mono text-2xl text-neutral-300">
-        <span class="font-bold text-neutral-100">{{ secondsRemaining }}</span>s
-      </p>
+
+      <!-- Live round scores sidebar (1/4) -->
+      <div class="flex flex-col gap-2 pt-16 self-start overflow-y-auto max-h-[calc(100dvh-80px)]">
+        <h3 class="font-mono text-xs text-neutral-300 uppercase tracking-widest mb-1">Round Scores</h3>
+        <div
+          v-for="(s, i) in roundScores"
+          :key="s.playerId"
+          class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800/50 rounded-lg text-sm"
+        >
+          <span class="font-mono text-xs text-neutral-400 min-w-[24px]">#{{ i + 1 }}</span>
+          <span class="flex-1 truncate">{{ s.username }}</span>
+          <span class="font-mono font-bold text-primary text-sm">{{ s.score }}</span>
+        </div>
+        <p v-if="roundScores.length === 0" class="text-sm text-neutral-400">Waiting for taps...</p>
+      </div>
     </div>
 
     <!-- Results -->
