@@ -27,8 +27,8 @@ else {
   const log = git('log', '-10', '--format=%h\t%s\t%aI\t%an')
   if (log) {
     commits = log.split('\n').filter(Boolean).map((line) => {
-      const [sha, message, date, author] = line.split('\t')
-      return { sha, message, date, author }
+      const parts = line.split('\t')
+      return { sha: parts[0] ?? '', message: parts[1] ?? '', date: parts[2] ?? '', author: parts[3] ?? '' }
     })
   }
 }

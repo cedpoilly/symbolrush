@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
+      - name: Generate version info
+        run: pnpm generate-version
+
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
