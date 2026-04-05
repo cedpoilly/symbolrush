@@ -58,7 +58,7 @@ jobs:
         id: git-info
         run: |
           echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           COMMITS=$(git log -10 --format='%h	%s	%aI	%an' | jq -R -s -c '
             split("\n") | map(select(length > 0)) | map(
               split("\t") | {sha: .[0], message: .[1], date: .[2], author: .[3]}
