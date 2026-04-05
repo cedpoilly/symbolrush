@@ -26,6 +26,21 @@ const preview: Preview = {
       ],
     },
   },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        // Apply dark class to html element for Tailwind/Nuxt UI dark mode
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = 'dark'
+          document.body.style.background = 'transparent'
+        }
+        return {}
+      },
+      template: '<story />',
+    }),
+  ],
 }
 
 export default preview

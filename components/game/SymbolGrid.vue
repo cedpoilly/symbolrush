@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Symbol } from '~/types/game'
+import SymbolTile from './SymbolTile.vue'
 
 defineProps<{
   symbols: Symbol[]

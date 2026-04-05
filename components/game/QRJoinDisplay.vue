@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import RoomCodeDisplay from './RoomCodeDisplay.vue'
+
 const props = defineProps<{
   roomCode: string
 }>()

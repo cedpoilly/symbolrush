@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LeaderboardEntry, SessionScore } from '~/types/game'
+import LeaderboardRow from './LeaderboardRow.vue'
 
 const props = defineProps<{
   entries: LeaderboardEntry[]
