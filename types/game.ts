@@ -79,6 +79,7 @@ export type ServerMessage =
   | { type: 'session:started'; endsAt: number; symbolChoices: Symbol[] }
   | { type: 'session:symbol-change'; symbol: Symbol; symbolChoices: Symbol[] }
   | { type: 'session:tick'; timeRemainingMs: number }
+  | { type: 'session:scores-update'; scores: SessionScore[] }
   | { type: 'session:ended'; scores: SessionScore[] }
   | { type: 'player:tap-result'; correct: boolean; score: number; delta: number }
   | { type: 'leaderboard:update'; leaderboard: LeaderboardEntry[] }

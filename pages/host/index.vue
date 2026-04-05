@@ -77,23 +77,28 @@ const psFullUrl = computed(() => {
   return `${window.location.origin}/ps/${roomCode.value}`
 })
 
+const joinUrl = computed(() => {
+  if (!roomCode.value || import.meta.server) return ''
+  return `${window.location.origin}/?room=${roomCode.value}`
+})
+
 function openPublicScreen() {
   window.open(`/ps/${roomCode.value}`, '_blank')
 }
 
 const toast = useToast()
-async function copyPublicScreenUrl() {
+async function copyUrl(url: string, label: string) {
   try {
-    await navigator.clipboard.writeText(psFullUrl.value)
+    await navigator.clipboard.writeText(url)
   } catch {
     const input = document.createElement('input')
-    input.value = psFullUrl.value
+    input.value = url
     document.body.appendChild(input)
     input.select()
     document.execCommand('copy')
     input.remove()
   }
-  toast.add({ title: 'URL copied!', color: 'success' })
+  toast.add({ title: `${label} copied!`, color: 'success' })
 }
 
 const canShare = ref(false)
@@ -101,13 +106,9 @@ onMounted(() => {
   canShare.value = typeof navigator !== 'undefined' && !!navigator.share
 })
 
-async function sharePublicScreenUrl() {
+async function shareUrl(url: string, title: string, text: string) {
   try {
-    await navigator.share({
-      title: 'Symbol Rush — Public Screen',
-      text: `Join Symbol Rush! Room: ${roomCode.value}`,
-      url: psFullUrl.value,
-    })
+    await navigator.share({ title, text, url })
   } catch { /* User cancelled */ }
 }
 
@@ -157,6 +158,20 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           <GameStatusBanner :status="phase" :round-count="roundCount" />
         </div>
 
+        <!-- Join Link -->
+        <div class="py-4 border-b border-neutral-900">
+          <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Join Link</h2>
+          <div class="flex gap-2">
+            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
+              Copy
+            </UButton>
+            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(joinUrl, 'Join Symbol Rush', `Join Symbol Rush! Room: ${roomCode}`)">
+              Share
+            </UButton>
+          </div>
+          <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ joinUrl }}</p>
+        </div>
+
         <!-- Public Screen actions -->
         <div class="py-4 border-b border-neutral-900">
           <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Public Screen</h2>
@@ -164,10 +179,10 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
               Open
             </UButton>
-            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyPublicScreenUrl">
+            <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(psFullUrl, 'PS link')">
               Copy URL
             </UButton>
-            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="sharePublicScreenUrl">
+            <UButton v-if="canShare" variant="soft" color="neutral" size="sm" icon="i-lucide-share" @click="shareUrl(psFullUrl, 'Symbol Rush — Public Screen', `Join Symbol Rush! Room: ${roomCode}`)">
               Share
             </UButton>
           </div>
