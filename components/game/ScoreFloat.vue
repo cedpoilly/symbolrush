@@ -19,7 +19,10 @@ function show(x: number, y: number, correct: boolean, delta: number) {
     font-family: 'Azeret Mono', monospace; font-weight: 900; font-size: 1.5rem;
     left: ${x}px; top: ${y}px;
     color: ${correct ? 'var(--color-green-400)' : 'var(--color-red-400)'};
-    text-shadow: 0 0 8px ${correct ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 51, 85, 0.5)'};
+    -webkit-text-stroke: 2px rgba(6, 6, 14, 0.7);
+    paint-order: stroke fill;
+    text-shadow: 0 0 8px ${correct ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 51, 85, 0.5)'},
+                 0 1px 3px rgba(0, 0, 0, 0.8);
     animation: float-up 0.7s ease forwards;
   `
   float.textContent = delta > 0 ? `+${delta}` : String(delta)
