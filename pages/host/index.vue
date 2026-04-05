@@ -150,16 +150,16 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
       <template v-else>
         <!-- Room info -->
-        <div class="py-4 border-b border-neutral-900">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="flex items-baseline gap-3 mb-2">
             <span class="text-sm text-neutral-400">Room</span>
             <RoomCodeDisplay :code="roomCode" size="sm" />
           </div>
           <GameStatusBanner :status="phase" :round-count="roundCount" />
-        </div>
+        </UCard>
 
         <!-- Join Link -->
-        <div class="py-4 border-b border-neutral-900">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Join Link</h2>
           <div class="flex gap-2">
             <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-copy" @click="copyUrl(joinUrl, 'Join link')">
@@ -170,10 +170,10 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             </UButton>
           </div>
           <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ joinUrl }}</p>
-        </div>
+        </UCard>
 
         <!-- Public Screen actions -->
-        <div class="py-4 border-b border-neutral-900">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Public Screen</h2>
           <div class="flex gap-2">
             <UButton variant="soft" color="neutral" size="sm" icon="i-lucide-external-link" @click="openPublicScreen">
@@ -187,19 +187,19 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             </UButton>
           </div>
           <p class="font-mono text-xs text-neutral-500 mt-2 break-all">{{ psFullUrl }}</p>
-        </div>
+        </UCard>
 
         <!-- Players -->
-        <div class="py-4 border-b border-neutral-900">
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             Players
             <UBadge variant="subtle" color="neutral" size="xs">{{ players.length }}</UBadge>
           </h2>
           <PlayerList :players="players" :scores="playerScores" />
-        </div>
+        </UCard>
 
         <!-- Playing state -->
-        <div v-if="phase === 'playing'" class="py-4 border-b border-neutral-900">
+        <UCard v-if="phase === 'playing'" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="h-[3px] bg-neutral-800 rounded-full mb-3 overflow-hidden">
             <div
               class="h-full transition-[width] duration-100"
@@ -212,26 +212,27 @@ useHead({ title: 'Symbol Rush — Host Panel' })
             <span class="text-2xl">{{ currentSymbol }}</span>
             <span class="font-mono text-sm text-neutral-400">{{ secondsRemaining }}s left</span>
           </div>
-        </div>
+        </UCard>
 
         <!-- Round results -->
-        <div v-if="phase === 'results' && sessionScores.length > 0" class="py-4 border-b border-neutral-900">
+        <UCard v-if="phase === 'results' && sessionScores.length > 0" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-3">Last Round</h2>
           <div class="flex flex-col gap-1">
-            <div
+            <UCard
               v-for="(s, i) in sessionScores.slice(0, 5)"
               :key="s.playerId"
-              class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 rounded-lg text-sm"
+              variant="subtle"
+              :ui="{ body: 'flex items-center gap-2 p-2 px-3 text-sm' }"
             >
               <span class="font-mono text-xs text-neutral-400 min-w-[28px]">#{{ i + 1 }}</span>
               <span class="flex-1">{{ s.username }}</span>
               <span class="font-mono font-bold text-primary">{{ s.score }}</span>
-            </div>
+            </UCard>
           </div>
-        </div>
+        </UCard>
 
         <!-- Controls -->
-        <div class="pt-5">
+        <div class="pt-2">
           <UButton
             v-if="phase === 'lobby' || phase === 'results'"
             block

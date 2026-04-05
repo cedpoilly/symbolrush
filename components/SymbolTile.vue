@@ -15,43 +15,26 @@ function handleTap(event: MouseEvent) {
 </script>
 
 <template>
-  <button class="symbol-tile" @click="handleTap">
+  <UButton
+    variant="soft"
+    color="neutral"
+    class="symbol-tile"
+    :ui="{ base: 'aspect-square text-[40px] justify-center min-h-[44px] min-w-[44px]' }"
+    @click="handleTap"
+  >
     {{ symbol }}
-  </button>
+  </UButton>
 </template>
 
 <style scoped>
 .symbol-tile {
-  aspect-ratio: 1;
-  font-size: 40px;
-  background: var(--color-rush-800);
-  border: 2px solid var(--color-rush-700);
-  border-radius: 14px;
-  color: var(--color-rush-100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.1s, border-color 0.15s;
-  min-height: 44px;
-  min-width: 44px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .symbol-tile:active {
   transform: scale(0.93);
-}
-
-.symbol-tile:hover {
-  border-color: var(--color-cyan-600);
-}
-
-:root.light .symbol-tile {
-  background: var(--color-rush-100);
-  border-color: var(--color-rush-200);
-  color: var(--color-rush-900);
 }
 </style>

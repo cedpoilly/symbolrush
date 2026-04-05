@@ -20,6 +20,13 @@ export default defineNuxtConfig({
     port: 6006,
   },
 
+  vite: {
+    server: {
+      allowedHosts: true,
+      hmr: false,
+    },
+  },
+
   nitro: {
     experimental: { websocket: true },
   },

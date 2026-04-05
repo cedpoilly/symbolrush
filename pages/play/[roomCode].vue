@@ -151,14 +151,14 @@ useHead({
       <p class="font-mono text-neutral-400 text-xs uppercase tracking-widest">Round over</p>
       <h1 class="font-mono font-black text-3xl text-primary">Nice run!</h1>
       <div class="flex gap-4 w-full max-w-[340px]">
-        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
+        <UCard variant="subtle" :ui="{ body: 'p-4 text-center' }" class="flex-1">
           <span class="text-xs text-neutral-400 block mb-1">Round Score</span>
           <span class="font-mono font-black text-3xl text-primary">{{ roundScore }}</span>
-        </div>
-        <div class="flex-1 bg-neutral-800 rounded-xl p-4 text-center">
+        </UCard>
+        <UCard variant="subtle" :ui="{ body: 'p-4 text-center' }" class="flex-1">
           <span class="text-xs text-neutral-400 block mb-1">Personal Best</span>
           <span class="font-mono font-black text-3xl text-warning">{{ personalBest }}</span>
-        </div>
+        </UCard>
       </div>
       <UBadge variant="outline" color="primary" size="md">
         <span class="font-mono">#{{ leaderboardRank }} on leaderboard</span>
