@@ -22,7 +22,7 @@ const AnimationShowcase = {
 
 const meta: Meta = {
   title: '1-Tokens/Animations',
-  component: AnimationShowcase,
+  component: AnimationShowcase as any,
 }
 
 export default meta

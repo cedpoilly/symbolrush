@@ -2,7 +2,7 @@
 import type { RoomStatus } from '~/types/game'
 
 defineProps<{
-  status: RoomStatus | 'lobby' | 'connecting'
+  status: RoomStatus | 'lobby' | 'connecting' | 'results'
   roundCount?: number
 }>()
 

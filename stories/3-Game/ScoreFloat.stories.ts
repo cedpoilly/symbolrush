@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import ScoreFloat from '~/components/game/ScoreFloat.vue'
-import SymbolGrid from '~/components/game/SymbolGrid.vue'
+import ScoreFloat from '~/components/ScoreFloat.vue'
+import SymbolGrid from '~/components/SymbolGrid.vue'
 import { ref } from 'vue'
 
 const meta: Meta<typeof ScoreFloat> = {

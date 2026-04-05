@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import SymbolTile from '~/components/game/SymbolTile.vue'
+import SymbolTile from '~/components/SymbolTile.vue'
 
 const meta: Meta<typeof SymbolTile> = {
   title: '3-Game/SymbolTile',

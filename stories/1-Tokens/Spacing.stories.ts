@@ -21,7 +21,7 @@ const SpacingShowcase = {
 
 const meta: Meta = {
   title: '1-Tokens/Spacing',
-  component: SpacingShowcase,
+  component: SpacingShowcase as any,
 }
 
 export default meta

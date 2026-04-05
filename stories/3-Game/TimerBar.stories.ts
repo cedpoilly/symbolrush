@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import TimerBar from '~/components/game/TimerBar.vue'
+import TimerBar from '~/components/TimerBar.vue'
 
 const meta: Meta<typeof TimerBar> = {
   title: '3-Game/TimerBar',

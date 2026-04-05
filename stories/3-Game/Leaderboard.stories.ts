@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import Leaderboard from '~/components/game/Leaderboard.vue'
+import Leaderboard from '~/components/Leaderboard.vue'
 
 const sampleEntries = [
   { playerId: '1', username: 'Alice', bestScore: 120, sessionCount: 3 },

@@ -178,7 +178,7 @@ useHead({
         <div class="flex items-center justify-center">
           <Transition name="symbol" mode="out-in">
             <span
-              :key="currentSymbol"
+              :key="currentSymbol ?? 'none'"
               class="font-mono text-[clamp(80px,20vw,160px)] leading-none text-neutral-100"
               style="text-shadow: 0 0 40px rgba(255,255,255,0.1)"
             >

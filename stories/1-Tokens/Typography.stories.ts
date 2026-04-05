@@ -32,7 +32,7 @@ const TypographyShowcase = {
 
 const meta: Meta = {
   title: '1-Tokens/Typography',
-  component: TypographyShowcase,
+  component: TypographyShowcase as any,
 }
 
 export default meta

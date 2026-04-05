@@ -21,7 +21,6 @@ export default defineNuxtConfig({
   },
 
   storybook: {
-    url: 'http://localhost:6006',
     port: 6006,
   },
 

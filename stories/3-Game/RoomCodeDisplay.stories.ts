@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import RoomCodeDisplay from '~/components/game/RoomCodeDisplay.vue'
+import RoomCodeDisplay from '~/components/RoomCodeDisplay.vue'
 
 const meta: Meta<typeof RoomCodeDisplay> = {
   title: '3-Game/RoomCodeDisplay',

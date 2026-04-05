@@ -14,7 +14,7 @@ function generateRoomCode(): string {
 
 function pickRandomFrom<T>(arr: readonly T[], exclude?: T): T {
   const available = exclude != null ? arr.filter(s => s !== exclude) : [...arr]
-  return available[Math.floor(Math.random() * available.length)]
+  return available[Math.floor(Math.random() * available.length)]!
 }
 
 // ── In-memory state ──

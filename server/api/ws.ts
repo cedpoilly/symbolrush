@@ -145,7 +145,7 @@ async function flushSessionToDB(session: any, sessionScores: any[], roomCode: st
   // Upsert room
   await db.insert(schema.rooms).values({
     code: roomCode,
-    config: room?.config ?? {},
+    config: room?.config ?? { sessionDurationMs: 30000, symbolIntervalMs: 3000, pointsCorrect: 10, pointsPenalty: -5, symbolCount: 4 },
   }).onConflictDoNothing()
 
   // Upsert players

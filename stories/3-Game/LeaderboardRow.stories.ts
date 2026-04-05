@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import LeaderboardRow from '~/components/game/LeaderboardRow.vue'
+import LeaderboardRow from '~/components/LeaderboardRow.vue'
 
 const meta: Meta<typeof LeaderboardRow> = {
   title: '3-Game/LeaderboardRow',

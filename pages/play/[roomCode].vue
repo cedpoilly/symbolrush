@@ -18,8 +18,8 @@ const symbolChoices = ref<Symbol[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const leaderboardRank = ref(0)
 
-const scoreFloatRef = ref<InstanceType<typeof ScoreFloat> | null>(null)
-const scoreDisplayRef = ref<InstanceType<typeof ScoreDisplay> | null>(null)
+const scoreFloatRef = ref<{ show: (x: number, y: number, correct: boolean, delta: number) => void } | null>(null)
+const scoreDisplayRef = ref<{ flash: (correct: boolean) => void } | null>(null)
 const lastTapPos = ref<{ x: number; y: number } | null>(null)
 
 onMounted(() => {

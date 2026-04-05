@@ -1,0 +1,4 @@
+- generic [ref=e3]:
+  - generic "Room is full"
+  - generic "Connection lost"
+  - generic "You're in!"

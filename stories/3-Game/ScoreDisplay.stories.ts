@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import ScoreDisplay from '~/components/game/ScoreDisplay.vue'
+import ScoreDisplay from '~/components/ScoreDisplay.vue'
 import { ref } from 'vue'
 
 const meta: Meta<typeof ScoreDisplay> = {
