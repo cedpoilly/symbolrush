@@ -12,6 +12,10 @@ const sessionDuration = ref(30_000)
 const sessionScores = ref<SessionScore[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
 const roundCount = ref(0)
+const autoLoop = ref(false)
+const nextRoundAt = ref<number | null>(null)
+const nextRoundCountdown = ref(0)
+let countdownInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   connect()
@@ -45,6 +49,8 @@ on('session:started', (msg) => {
   roundCount.value++
   sessionDuration.value = msg.endsAt - Date.now()
   timeRemainingMs.value = sessionDuration.value
+  nextRoundAt.value = null
+  stopCountdown()
 })
 
 on('session:symbol-change', (msg) => {
@@ -67,6 +73,39 @@ on('leaderboard:update', (msg) => {
   if (msg.type !== 'leaderboard:update') return
   leaderboard.value = msg.leaderboard
 })
+
+on('room:auto-loop-changed', (msg) => {
+  if (msg.type !== 'room:auto-loop-changed') return
+  autoLoop.value = msg.enabled
+})
+
+on('room:next-round-at', (msg) => {
+  if (msg.type !== 'room:next-round-at') return
+  nextRoundAt.value = msg.timestamp
+  startCountdown()
+})
+
+function startCountdown() {
+  stopCountdown()
+  countdownInterval = setInterval(() => {
+    if (nextRoundAt.value) {
+      nextRoundCountdown.value = Math.max(0, Math.ceil((nextRoundAt.value - Date.now()) / 1000))
+      if (nextRoundCountdown.value <= 0) stopCountdown()
+    }
+  }, 200)
+}
+
+function stopCountdown() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+  nextRoundCountdown.value = 0
+}
+
+function toggleAutoLoop() {
+  send({ type: 'host:set-auto-loop', enabled: autoLoop.value })
+}
 
 function startRound() {
   send({ type: 'host:start-session' })
@@ -124,6 +163,10 @@ const playerScores = computed(() => {
     map[entry.playerId] = entry.bestScore
   }
   return map
+})
+
+onUnmounted(() => {
+  stopCountdown()
 })
 
 useHead({ title: 'Symbol Rush — Host Panel' })
@@ -199,6 +242,17 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           <PlayerList :players="players" :scores="playerScores" />
         </UCard>
 
+        <!-- Auto-loop controls -->
+        <UCard variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xs font-semibold text-neutral-300 uppercase tracking-widest">Auto-loop</h2>
+              <p class="text-xs text-neutral-500 mt-1">Rounds run automatically</p>
+            </div>
+            <USwitch v-model="autoLoop" @update:model-value="toggleAutoLoop" />
+          </div>
+        </UCard>
+
         <!-- Playing state -->
         <UCard v-if="phase === 'playing'" variant="subtle" :ui="{ body: 'p-4' }" class="mb-3">
           <div class="h-[3px] bg-neutral-800 rounded-full mb-3 overflow-hidden">
@@ -234,6 +288,18 @@ useHead({ title: 'Symbol Rush — Host Panel' })
 
         <!-- Controls -->
         <div class="pt-2">
+          <div v-if="phase === 'results' && autoLoop && nextRoundCountdown > 0" class="mb-3">
+            <p class="font-mono text-sm text-neutral-300 text-center">
+              Next round in {{ nextRoundCountdown }}s
+            </p>
+            <div class="h-[3px] bg-neutral-800 rounded-full mt-2 overflow-hidden">
+              <div
+                class="h-full bg-primary transition-[width] duration-200"
+                :style="{ width: (nextRoundCountdown / 25 * 100) + '%' }"
+              />
+            </div>
+          </div>
+
           <UButton
             v-if="phase === 'lobby' || phase === 'results'"
             block
@@ -243,6 +309,12 @@ useHead({ title: 'Symbol Rush — Host Panel' })
           >
             {{ phase === 'results' ? 'Next Round' : 'Start Round' }}
           </UButton>
+          <p v-if="phase === 'lobby' && !autoLoop" class="text-sm text-neutral-300 mt-3">
+            Share the QR code on a projector. Players join on their phones.
+          </p>
+          <p v-if="phase === 'lobby' && autoLoop" class="text-sm text-neutral-300 mt-3">
+            Auto-loop is on. First round starts automatically when players join.
+          </p>
           <p v-if="phase === 'playing'" class="font-mono text-neutral-300 text-sm">
             Round in progress...
           </p>
