@@ -36,6 +36,7 @@ BRB is not a special mode — it's just another auto-looping room on a different
 | `autoLoop` | `boolean` | `false` | Rounds run back-to-back automatically |
 | `pauseBetweenRoundsMs` | `number` | `25000` | Gap between rounds in auto-loop (shows scores + QR) |
 | `autoStartDelayMs` | `number` | `120000` | Idle timeout before first round auto-starts |
+| `maxRounds` | `number \| null` | `null` | Stop auto-loop after N rounds (null = unlimited) |
 
 ### Server implementation
 
@@ -44,6 +45,7 @@ BRB is not a special mode — it's just another auto-looping room on a different
 - On room creation with `autoLoop: true`, schedule first round after `autoStartDelayMs`
 - On room creation with `autoLoop: false`, schedule safety-net auto-start after `autoStartDelayMs` (fires once, does not enable auto-loop)
 - Timer cleared when: room is deleted, mode is toggled off, or host manually starts a round
+- Track `roundsPlayed` on the room. When `maxRounds` is set and `roundsPlayed >= maxRounds`, stop auto-looping and set status to `finished`
 - New exports: `scheduleAutoStart(roomCode)`, `cancelAutoStart(roomCode)`, `setAutoLoop(roomCode, enabled)`
 
 ### WebSocket changes
@@ -73,4 +75,3 @@ No changes. Players see rounds, scores, and pauses. They don't know which mode i
 
 - No "BRB mode" — BRB is just a separate auto-loop room on the OBS BRB scene
 - No automatic difficulty progression between rounds
-- No round count limit (auto-loop runs indefinitely until host stops or room is deleted)
