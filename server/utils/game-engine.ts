@@ -35,6 +35,7 @@ export function createRoom(config?: Partial<RoomConfig>): Room {
     hostConnected: true,
     currentSession: null,
     players: new Map(),
+    roundsPlayed: 0,
   }
   rooms.set(code, room)
   return room

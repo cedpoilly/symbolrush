@@ -7,6 +7,10 @@ export interface RoomConfig {
   pointsCorrect: number
   pointsPenalty: number
   symbolCount: number
+  autoLoop: boolean
+  pauseBetweenRoundsMs: number
+  autoStartDelayMs: number
+  maxRounds: number | null
 }
 
 export const DEFAULT_ROOM_CONFIG: RoomConfig = {
@@ -15,6 +19,10 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
   pointsCorrect: 10,
   pointsPenalty: -5,
   symbolCount: 4,
+  autoLoop: false,
+  pauseBetweenRoundsMs: 25_000,
+  autoStartDelayMs: 120_000,
+  maxRounds: null,
 }
 
 export type RoomStatus = 'waiting' | 'playing' | 'finished'
@@ -26,6 +34,7 @@ export interface Room {
   hostConnected: boolean
   currentSession: GameSession | null
   players: Map<string, Player>
+  roundsPlayed: number
 }
 
 export interface Player {
@@ -66,6 +75,7 @@ export type ClientMessage =
   | { type: 'host:create-room'; config?: Partial<RoomConfig> }
   | { type: 'host:start-session' }
   | { type: 'host:end-room' }
+  | { type: 'host:set-auto-loop'; enabled: boolean }
   | { type: 'screen:join'; roomCode: string }
   | { type: 'player:join'; roomCode: string; username: string }
   | { type: 'player:tap'; symbol: Symbol }
@@ -76,6 +86,8 @@ export type ServerMessage =
   | { type: 'room:player-joined'; player: { id: string; username: string } }
   | { type: 'room:player-left'; playerId: string }
   | { type: 'room:status'; status: RoomStatus; playerCount: number }
+  | { type: 'room:auto-loop-changed'; enabled: boolean }
+  | { type: 'room:next-round-at'; timestamp: number }
   | { type: 'session:started'; endsAt: number; symbolChoices: Symbol[] }
   | { type: 'session:symbol-change'; symbol: Symbol; symbolChoices: Symbol[] }
   | { type: 'session:tick'; timeRemainingMs: number }
