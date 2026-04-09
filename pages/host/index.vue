@@ -17,11 +17,16 @@ const nextRoundAt = ref<number | null>(null)
 const nextRoundCountdown = ref(0)
 let countdownInterval: ReturnType<typeof setInterval> | null = null
 
+const route = useRoute()
+if (route.query.autoloop === 'true') {
+  autoLoop.value = true
+}
+
 onMounted(() => {
   connect()
   const unwatch = watch(connected, (isConnected) => {
     if (isConnected) {
-      send({ type: 'host:create-room' })
+      send({ type: 'host:create-room', config: { autoLoop: autoLoop.value } })
       unwatch()
     }
   }, { immediate: true })
