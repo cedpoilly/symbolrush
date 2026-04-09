@@ -35,6 +35,7 @@ export function createRoom(config?: Partial<RoomConfig>): Room {
     hostConnected: true,
     currentSession: null,
     players: new Map(),
+    roundsPlayed: 0,
   }
   rooms.set(code, room)
   return room
@@ -45,7 +46,42 @@ export function getRoom(code: string): Room | undefined {
 }
 
 export function deleteRoom(code: string): void {
+  cancelAutoStart(code.toUpperCase())
   rooms.delete(code.toUpperCase())
+}
+
+const autoStartTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+export function scheduleAutoStart(roomCode: string, delayMs: number, onStart: () => void): void {
+  cancelAutoStart(roomCode)
+  const timer = setTimeout(() => {
+    autoStartTimers.delete(roomCode)
+    onStart()
+  }, delayMs)
+  autoStartTimers.set(roomCode, timer)
+}
+
+export function cancelAutoStart(roomCode: string): void {
+  const timer = autoStartTimers.get(roomCode)
+  if (timer) {
+    clearTimeout(timer)
+    autoStartTimers.delete(roomCode)
+  }
+}
+
+export function setAutoLoop(roomCode: string, enabled: boolean): boolean {
+  const room = rooms.get(roomCode)
+  if (!room) return false
+  room.config.autoLoop = enabled
+  return true
+}
+
+export function canAutoStartNextRound(roomCode: string): boolean {
+  const room = rooms.get(roomCode)
+  if (!room) return false
+  if (!room.config.autoLoop) return false
+  if (room.config.maxRounds !== null && room.roundsPlayed >= room.config.maxRounds) return false
+  return true
 }
 
 // ── Player management ──
@@ -122,6 +158,7 @@ export function startSession(roomCode: string): GameSession | null {
     }
   }
 
+  room.roundsPlayed++
   room.currentSession = session
   room.status = 'playing'
   return session

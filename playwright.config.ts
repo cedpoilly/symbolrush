@@ -6,12 +6,14 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: false,
   retries: 0,
-  reporter: [['html', { open: 'never' }], ['list']],
+  preserveOutput: 'always',
+  reporter: [['html', { open: 'never', outputFolder: './playwright-report' }], ['list']],
   use: {
     baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
+    video: { mode: 'on', size: { width: 1280, height: 720 } },
   },
-  outputDir: './screenshots',
+  outputDir: './test-results',
   webServer: {
     command: 'node .output/server/index.mjs',
     port: 3001,

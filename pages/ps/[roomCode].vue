@@ -41,7 +41,38 @@ function stopCountdown() {
   }
 }
 
-onUnmounted(() => stopCountdown())
+const nextRoundAt = ref<number | null>(null)
+const nextRoundCountdown = ref(0)
+let nextRoundInterval: ReturnType<typeof setInterval> | null = null
+
+on('room:next-round-at', (msg) => {
+  if (msg.type !== 'room:next-round-at') return
+  nextRoundAt.value = msg.timestamp
+  startNextRoundCountdown()
+})
+
+function startNextRoundCountdown() {
+  stopNextRoundCountdown()
+  nextRoundInterval = setInterval(() => {
+    if (nextRoundAt.value) {
+      nextRoundCountdown.value = Math.max(0, Math.ceil((nextRoundAt.value - Date.now()) / 1000))
+      if (nextRoundCountdown.value <= 0) stopNextRoundCountdown()
+    }
+  }, 200)
+}
+
+function stopNextRoundCountdown() {
+  if (nextRoundInterval) {
+    clearInterval(nextRoundInterval)
+    nextRoundInterval = null
+  }
+  nextRoundCountdown.value = 0
+}
+
+onUnmounted(() => {
+  stopCountdown()
+  stopNextRoundCountdown()
+})
 
 onMounted(() => {
   connect()
@@ -78,6 +109,8 @@ on('room:player-left', (msg) => {
 on('session:started', (msg) => {
   if (msg.type !== 'session:started') return
   stopCountdown()
+  nextRoundAt.value = null
+  stopNextRoundCountdown()
   roundScores.value = []
   phase.value = 'playing'
   sessionDuration.value = msg.endsAt - Date.now()
@@ -211,6 +244,9 @@ useHead({
     <div v-else-if="phase === 'results'" class="min-h-dvh flex flex-col items-center justify-center gap-6 p-10 relative z-1">
       <h2 class="font-mono text-sm text-neutral-300 uppercase tracking-[0.15em]">BEST SCORES</h2>
       <Leaderboard :entries="leaderboard" :session-scores="sessionScores" />
+      <p v-if="nextRoundCountdown > 0" class="font-mono text-2xl text-primary">
+        Next round in {{ nextRoundCountdown }}s
+      </p>
       <p class="font-mono text-sm text-neutral-300">
         Next round in <span class="font-bold text-primary">{{ lobbyCountdown }}</span>s
       </p>
