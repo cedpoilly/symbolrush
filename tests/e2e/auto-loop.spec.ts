@@ -101,8 +101,8 @@ test.describe('Auto-loop — enabled via query param', () => {
     roomCode = (await codeEl.textContent())!.trim()
 
     // Auto-loop should show as enabled
-    await expect(hostPage.locator('text=Auto-loop')).toBeVisible()
-    await expect(hostPage.locator('text=Rounds run automatically')).toBeVisible()
+    await expect(hostPage.getByRole('heading', { name: 'Auto-loop' })).toBeVisible()
+    await expect(hostPage.getByText('Rounds run automatically')).toBeVisible()
   })
 
   test('public screen connects', async () => {
@@ -128,15 +128,12 @@ test.describe('Auto-loop — enabled via query param', () => {
   })
 
   test('countdown appears on public screen', async () => {
-    await expect(psPage.locator('text=Next round in')).toBeVisible({ timeout: 5000 })
+    await expect(psPage.getByText(/Next round in \d+s/).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('next round starts automatically after countdown', async () => {
-    // Wait for the 25-second pause to complete + buffer
-    await hostPage.waitForTimeout(27_000)
-
-    // Round 2 should have auto-started
-    await expect(hostPage.locator('text=Current symbol')).toBeVisible({ timeout: 5000 })
+    // Round 2 should auto-start after the pause countdown completes
+    await expect(hostPage.locator('text=Current symbol')).toBeVisible({ timeout: 30_000 })
   })
 })
 
@@ -197,6 +194,7 @@ test.describe('Auto-loop — toggle mid-session', () => {
 })
 
 test.describe('Auto-loop — maxRounds limit', () => {
+  test.setTimeout(180_000)
   let hostContext: BrowserContext
   let hostPage: Page
 
@@ -210,6 +208,7 @@ test.describe('Auto-loop — maxRounds limit', () => {
   })
 
   test('auto-loop stops after maxRounds', async () => {
+    await hostPage.goto('/')
     // Create room with autoLoop + maxRounds via WebSocket directly
     const roomCode = await hostPage.evaluate(async () => {
       return new Promise<string>((resolve) => {
@@ -287,6 +286,7 @@ test.describe('Auto-loop — idle auto-start safety net', () => {
   })
 
   test('round auto-starts after idle timeout with players connected', async () => {
+    await hostPage.goto('/')
     // Create room with a short autoStartDelayMs for testing
     const result = await hostPage.evaluate(async () => {
       return new Promise<{ roomCode: string; autoStarted: boolean }>((resolve) => {
