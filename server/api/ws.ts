@@ -2,6 +2,7 @@ import {
   createRoom, getRoom, addPlayer, removePlayer,
   startSession, rotateSymbol, handleTap, endSession,
   getLeaderboard, getSessionTimeRemaining, getSessionScores,
+  scheduleAutoStart, cancelAutoStart, setAutoLoop, canAutoStartNextRound,
 } from '../utils/game-engine'
 import type { ClientMessage, ServerMessage } from '~/types/game'
 import { DEFAULT_ROOM_CONFIG } from '~/types/game'
@@ -53,6 +54,24 @@ function sendToDisplays(roomCode: string, message: ServerMessage) {
       if (peer) peer.send(data)
     }
   }
+}
+
+function startRoundForRoom(roomCode: string) {
+  cancelAutoStart(roomCode)
+  const session = startSession(roomCode)
+  if (!session) return
+
+  broadcast(roomCode, {
+    type: 'session:started',
+    endsAt: session.endsAt,
+    symbolChoices: session.symbolChoices,
+  })
+  sendToDisplays(roomCode, {
+    type: 'session:symbol-change',
+    symbol: session.currentSymbol,
+    symbolChoices: session.symbolChoices,
+  })
+  startGameLoop(roomCode)
 }
 
 function addPeerToRoom(peerId: string, roomCode: string) {
@@ -124,6 +143,20 @@ async function stopGameLoop(roomCode: string) {
 
   broadcast(roomCode, { type: 'session:ended', scores: sessionScores })
   broadcast(roomCode, { type: 'leaderboard:update', leaderboard })
+
+  // Schedule next round if auto-loop is active
+  if (canAutoStartNextRound(roomCode) && room) {
+    const nextRoundAt = Date.now() + room.config.pauseBetweenRoundsMs
+    broadcast(roomCode, { type: 'room:next-round-at', timestamp: nextRoundAt })
+    scheduleAutoStart(roomCode, room.config.pauseBetweenRoundsMs, () => {
+      const r = getRoom(roomCode)
+      if (r && r.status === 'waiting' && r.players.size > 0) {
+        startRoundForRoom(roomCode)
+      }
+    })
+  } else if (room?.config.maxRounds !== null && room && room.roundsPlayed >= room.config.maxRounds) {
+    broadcast(roomCode, { type: 'room:status', status: 'finished', playerCount: room.players.size })
+  }
 
   // Flush to DB
   if (session && sessionScores.length > 0) {
@@ -204,6 +237,14 @@ export default defineWebSocketHandler({
         peerMeta.set(peer.id, { type: 'host', roomCode: room.code })
         addPeerToRoom(peer.id, room.code)
         sendTo(peer.id, { type: 'room:created', roomCode: room.code })
+
+        // Schedule idle auto-start (safety net for all modes)
+        scheduleAutoStart(room.code, room.config.autoStartDelayMs, () => {
+          const r = getRoom(room.code)
+          if (r && r.status === 'waiting' && r.players.size > 0) {
+            startRoundForRoom(room.code)
+          }
+        })
         break
       }
 
@@ -213,32 +254,44 @@ export default defineWebSocketHandler({
           sendTo(peer.id, { type: 'error', message: 'Not authorized' })
           return
         }
-        const session = startSession(meta.roomCode)
-        if (!session) {
-          sendTo(peer.id, { type: 'error', message: 'Cannot start session' })
-          return
-        }
-        // Broadcast session start to all (players need endsAt + symbolChoices)
-        broadcast(meta.roomCode, {
-          type: 'session:started',
-          endsAt: session.endsAt,
-          symbolChoices: session.symbolChoices,
-        })
-        // Send initial symbol only to displays (host + public screens)
-        sendToDisplays(meta.roomCode, {
-          type: 'session:symbol-change',
-          symbol: session.currentSymbol,
-          symbolChoices: session.symbolChoices,
-        })
-        startGameLoop(meta.roomCode)
+        startRoundForRoom(meta.roomCode)
         break
       }
 
       case 'host:end-room': {
         const meta = peerMeta.get(peer.id)
         if (!meta || meta.type !== 'host') return
+        cancelAutoStart(meta.roomCode)
         stopGameLoop(meta.roomCode)
         broadcast(meta.roomCode, { type: 'room:status', status: 'finished', playerCount: 0 })
+        break
+      }
+
+      case 'host:set-auto-loop': {
+        const meta = peerMeta.get(peer.id)
+        if (!meta || meta.type !== 'host') {
+          sendTo(peer.id, { type: 'error', message: 'Not a host' })
+          return
+        }
+        const room = getRoom(meta.roomCode)
+        if (!room) return
+
+        setAutoLoop(meta.roomCode, data.enabled)
+        broadcast(meta.roomCode, { type: 'room:auto-loop-changed', enabled: data.enabled })
+
+        if (data.enabled && room.status === 'waiting' && room.players.size > 0) {
+          // Start countdown immediately if between rounds
+          const nextRoundAt = Date.now() + room.config.pauseBetweenRoundsMs
+          broadcast(meta.roomCode, { type: 'room:next-round-at', timestamp: nextRoundAt })
+          scheduleAutoStart(meta.roomCode, room.config.pauseBetweenRoundsMs, () => {
+            const r = getRoom(meta.roomCode)
+            if (r && r.status === 'waiting' && r.players.size > 0) {
+              startRoundForRoom(meta.roomCode)
+            }
+          })
+        } else if (!data.enabled) {
+          cancelAutoStart(meta.roomCode)
+        }
         break
       }
 
@@ -361,6 +414,7 @@ export default defineWebSocketHandler({
       if (meta.type === 'host') {
         const room = getRoom(meta.roomCode)
         if (room) room.hostConnected = false
+        cancelAutoStart(meta.roomCode)
       }
 
       peerMeta.delete(peer.id)
